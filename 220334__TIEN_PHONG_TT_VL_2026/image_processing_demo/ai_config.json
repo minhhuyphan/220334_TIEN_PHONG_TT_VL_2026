@@ -1,0 +1,145 @@
+{
+  "api_services": {
+    "replicate": {
+      "api_key": "your_token_here",
+      "stable_diffusion_model": "stability-ai/stable-diffusion-3",
+      "enabled": true,
+      "description": "Tạo nền ảnh từ text prompt"
+    },
+    "openai": {
+      "api_key": "your_token_here",
+      "model": "gpt-4",
+      "enabled": false,
+      "description": "Tạo text/slogan quảng cáo thông minh"
+    },
+    "huggingface": {
+      "api_key": "your_token_here",
+      "model": "stabilityai/stable-diffusion-2",
+      "enabled": false,
+      "description": "Tạo ảnh, phân tích, tạo text"
+    }
+  },
+  "design_templates": {
+    "modern_tech": {
+      "colors": [
+        "#667eea",
+        "#764ba2",
+        "#f093fb"
+      ],
+      "gradient": [
+        "modern_gradient",
+        [
+          102,
+          126,
+          234
+        ],
+        [
+          118,
+          75,
+          162
+        ]
+      ],
+      "ai_prompt": "modern minimalist tech product background, clean, professional, blue purple gradient",
+      "font_style": "bold",
+      "description": "Phong cách công nghệ hiện đại"
+    },
+    "luxury": {
+      "colors": [
+        "#2d2d2d",
+        "#c9a961",
+        "#ffffff"
+      ],
+      "gradient": [
+        "dark_premium",
+        [
+          33,
+          33,
+          33
+        ],
+        [
+          201,
+          169,
+          97
+        ]
+      ],
+      "ai_prompt": "luxury premium background, gold accents, dark elegant, professional",
+      "font_style": "serif",
+      "description": "Phong cách cao cấp sang trọng"
+    },
+    "youthful_fun": {
+      "colors": [
+        "#ff6b6b",
+        "#ff9999",
+        "#ffc366"
+      ],
+      "gradient": [
+        "sunset_gradient",
+        [
+          255,
+          107,
+          107
+        ],
+        [
+          255,
+          153,
+          153
+        ]
+      ],
+      "ai_prompt": "vibrant colorful fun background, playful, energetic, young audience",
+      "font_style": "bold",
+      "description": "Phong cách trẻ trung vui tươi"
+    },
+    "natural_organic": {
+      "colors": [
+        "#558b2f",
+        "#9ccc65",
+        "#c8e6c9"
+      ],
+      "gradient": [
+        "ocean_gradient",
+        [
+          85,
+          139,
+          47
+        ],
+        [
+          156,
+          204,
+          101
+        ]
+      ],
+      "ai_prompt": "natural organic eco-friendly background, green nature, fresh, sustainable",
+      "font_style": "regular",
+      "description": "Phong cách tự nhiên và thân thiện"
+    },
+    "sale_promotion": {
+      "colors": [
+        "#ff5252",
+        "#ffeb3b",
+        "#ffffff"
+      ],
+      "gradient": [
+        "sunset_gradient",
+        [
+          255,
+          82,
+          82
+        ],
+        [
+          255,
+          235,
+          59
+        ]
+      ],
+      "ai_prompt": "exciting sale promotion background, red yellow, energetic, buy now feeling",
+      "font_style": "bold",
+      "description": "Phong cách khuyến mãi sale"
+    }
+  },
+  "slogan_prompts": {
+    "sale": "Tạo 5 slogan quảng cáo khác nhau cho sản phẩm sale/giảm giá. Viết tiếng Việt, ngắn gọn, quy tụ.",
+    "new_product": "Tạo 5 slogan quảng cáo cho sản phẩm mới. Viết tiếng Việt, hấp dẫn, tạo sự tò mò.",
+    "premium": "Tạo 5 slogan quảng cáo cho sản phẩm cao cấp. Viết tiếng Việt, sang trọng, chuyên nghiệp.",
+    "daily": "Tạo 5 slogan quảng cáo cho sản phẩm hàng ngày. Viết tiếng Việt, vui tươi, gần gũi."
+  }
+}

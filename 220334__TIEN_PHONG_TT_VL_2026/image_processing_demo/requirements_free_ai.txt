@@ -1,0 +1,43 @@
+"""
+Requirements for Free AI Banner Creator
+========================================
+
+Install with: pip install -r requirements_free_ai.txt
+"""
+
+# Core Image Processing
+Pillow==10.1.0
+opencv-python==4.8.1.78
+numpy==1.24.3
+
+# Background Removal
+rembg==2.0.50
+
+# Deep Learning - PyTorch
+# GPU VERSION (NVIDIA CUDA 11.8):
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# OR CPU VERSION:
+# pip install torch torchvision torchaudio
+
+# AI Models
+transformers==4.36.2
+diffusers==0.21.4
+accelerate==0.24.0
+safetensors==0.4.1
+
+# Optional: For faster inference
+xformers==0.0.23
+bitsandbytes==0.41.1
+
+# Vision Models
+ultralytics==8.0.239  # YOLO
+
+# Utilities
+requests==2.31.0
+Pillow-SIMD==9.0.0.post1  # Optional: faster image processing
+tqdm==4.66.1
+
+# For Google Colab compatibility
+matplotlib==3.8.2
+ipython==8.18.1

@@ -1,0 +1,132 @@
+"""
+GIAO DIỆN - Hướng dẫn nhanh
+==========================
+
+Tôi đã tạo 3 giao diện khác nhau cho bạn:
+"""
+
+print("""
+╔══════════════════════════════════════════════════════════════════╗
+║        🎨 3-LAYER IMAGE COMPOSITING - GIAO DIỆN NHANH            ║
+╚══════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 1️⃣  DESKTOP GUI (Dễ nhất - Khuyên dùng nếu là lần đầu)        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Lệnh:  python gui_desktop.py                                   │
+│                                                                 │
+│  Giao diện:  Windows-style + Preview trực tiếp                  │
+│  Tính năng:  ✓ Click chuột                                      │
+│             ✓ Drag-drop upload                                  │
+│             ✓ Xem trước (preview)                               │
+│             ✓ Không cần cài thêm (tkinter có sẵn)               │
+│                                                                 │
+│  Bước sử dụng:                                                  │
+│    1. Chạy lệnh                                                 │
+│    2. Click "📂 Chọn ảnh sản phẩm"                             │
+│    3. Click "✨ TẠO BANNER"                                     │
+│    4. Click "💾 Lưu kết quả"                                    │
+│                                                                 │
+│  Phù hợp cho: Người mới, test nhanh, xem kết quả trực tiếp     │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 2️⃣  CLI INTERFACE (Mạnh nhất - Khuyên dùng cho batch)          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Lệnh:  python cli_interface.py                                 │
+│                                                                 │
+│  Giao diện:  Terminal menu (có màu)                             │
+│  Tính năng:  ✓ Menu interaktif                                  │
+│             ✓ Tất cả tính năng                                  │
+│             ✓ Nhanh & automation                                │
+│             ✓ Batch processing                                  │
+│                                                                 │
+│  Menu:                                                          │
+│    1. 🎯 Tạo Banner Nhanh                                      │
+│    2. 📦 Tách nền sản phẩm                                     │
+│    3. 🤖 Tạo nền AI                                            │
+│    4. 🔧 Tùy chỉnh nâng cao                                    │
+│    5. 📊 Chạy test toàn bộ                                     │
+│    0. ❌ Thoát                                                  │
+│                                                                 │
+│  Phù hợp cho: Power users, automation, servers                 │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 3️⃣  WEB INTERFACE (Hiện đại - Khuyên dùng cho team)            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Lệnh:  python app.py                                           │
+│  Mở:    http://localhost:5000                                   │
+│                                                                 │
+│  Giao diện:  Modern web UI (HTML/CSS/JS)                        │
+│  Tính năng:  ✓ Browser-based                                    │
+│             ✓ Mobile-friendly                                   │
+│             ✓ REST API                                          │
+│             ✓ Collaborative                                     │
+│                                                                 │
+│  Phù hợp cho: Team, sharing, API integration, mobile           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════╗
+║ 📊 SO SÁNH NHANH                                                 ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  Tính năng      │  Desktop GUI  │  CLI   │  Web                ║
+║  ─────────────────────────────────────────────────────────────  ║
+║  Dễ sử dụng     │  ⭐⭐⭐⭐⭐   │  ⭐⭐⭐  │  ⭐⭐⭐⭐  ║
+║  Xem trước      │  ⭐⭐⭐⭐⭐   │  ❌    │  ⭐⭐⭐⭐  ║
+║  Tốc độ         │  ⭐⭐⭐       │  ⭐⭐⭐⭐⭐ │  ⭐⭐⭐   ║
+║  Automation     │  ❌           │  ⭐⭐⭐⭐⭐ │  ⭐⭐⭐⭐  ║
+║  Mobile         │  ❌           │  ❌    │  ⭐⭐⭐⭐⭐ ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════╗
+║ 🎯 CHỌN GIAO DIỆN PHÙ HỢP                                        ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  Bạn muốn...                 → Dùng                              ║
+║  ────────────────────────────────────────────────────────────── ║
+║  ✓ Test nhanh, lần đầu       → Desktop GUI                      ║
+║  ✓ Batch 100 ảnh             → CLI Interface                    ║
+║  ✓ Chia sẻ với team          → Web Interface                    ║
+║  ✓ Automation script          → CLI Interface                   ║
+║  ✓ API integration           → Web Interface                    ║
+║  ✓ Xem trực tiếp            → Desktop GUI                      ║
+║  ✓ Server production          → Web + Docker                    ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════╗
+║ 🚀 QUICK START                                                   ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  Bước 1: Cài dependencies                                       ║
+║    $ pip install -r requirements.txt                            ║
+║                                                                  ║
+║  Bước 2: Chọn giao diện & chạy                                  ║
+║                                                                  ║
+║    Option A - Desktop (khuyên dùng lần đầu):                    ║
+║    $ python gui_desktop.py                                      ║
+║                                                                  ║
+║    Option B - CLI (batch processing):                           ║
+║    $ python cli_interface.py                                    ║
+║                                                                  ║
+║    Option C - Web (team/API):                                   ║
+║    $ python app.py                                              ║
+║    $ open http://localhost:5000                                 ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📚 Xem thêm tài liệu:
+   - UI_GUIDE.md - Hướng dẫn chi tiết từng giao diện
+   - QUICK_START.md - Setup 5 phút
+   - INTEGRATION_GUIDE.md - API reference
+   - README.md - Mô tả dự án
+""")

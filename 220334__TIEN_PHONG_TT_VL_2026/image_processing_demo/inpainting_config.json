@@ -1,0 +1,44 @@
+{
+  "banner_settings": {
+    "width": 1200,
+    "height": 640,
+    "product_width_percent": 0.35,
+    "padding_product": 20
+  },
+  "inpainting_settings": {
+    "model": "runwayml/stable-diffusion-inpainting",
+    "num_inference_steps": 50,
+    "guidance_scale": 7.5,
+    "enabled": true,
+    "default_prompt": "Professional product backdrop, studio lighting, modern aesthetic"
+  },
+  "groq_settings": {
+    "enabled": true,
+    "model": "mixtral-8x7b-32768",
+    "max_tokens": 100,
+    "default_generation_types": ["title", "description", "inpaint_prompt"]
+  },
+  "text_settings": {
+    "title_font_size": 72,
+    "subtitle_font_size": 32,
+    "title_color": [255, 255, 255],
+    "subtitle_color": [255, 200, 0]
+  },
+  "output_settings": {
+    "folder": "output",
+    "format": "png",
+    "quality": "high",
+    "auto_preview": true
+  },
+  "device_settings": {
+    "use_cuda": true,
+    "batch_size": 1,
+    "dtype": "float16",
+    "memory_efficient": true
+  },
+  "logging": {
+    "level": "INFO",
+    "log_file": "banner_creator.log",
+    "verbose": false
+  }
+}

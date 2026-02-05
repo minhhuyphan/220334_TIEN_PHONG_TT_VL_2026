@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  image-compositing-api:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./fonts:/app/fonts
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+    restart: unless-stopped
+
+  # Optional: Stable Diffusion WebUI service
+  # To enable, uncomment below and ensure you have GPU support
+  # stable-diffusion-webui:
+  #   image: ghcr.io/acheong08/stable-diffusion-webui:latest
+  #   ports:
+  #     - "7860:7860"
+  #   volumes:
+  #     - ./sd_models:/app/models
+  #   environment:
+  #     - CLI_ARGS=--listen 0.0.0.0 --api
+  #   restart: unless-stopped
+
+volumes:
+  input:
+  output:
+  fonts:

@@ -1,0 +1,37 @@
+# Stable Diffusion Inpainting + Groq - Requirements
+
+# Core
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# AI/ML
+diffusers>=0.21.0
+transformers>=4.30.0
+accelerate>=0.20.0
+safetensors>=0.3.0
+
+# Groq API
+groq>=0.4.1
+
+# Image processing
+Pillow>=10.0.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+scikit-image>=0.21.0
+
+# Background removal
+rembg>=0.2.0.50
+onnxruntime-gpu>=1.15.0  # or onnxruntime for CPU
+
+# GUI
+tk  # Usually included with Python
+
+# Utilities
+requests>=2.31.0
+tqdm>=4.65.0
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Optional: Monitoring
+psutil>=5.9.0
