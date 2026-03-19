@@ -334,7 +334,7 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
             <div className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Tỷ lệ khung hình</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   {ASPECT_RATIO_PRESETS.map((preset) => {
                     const isActive = width === preset.width && height === preset.height;
                     const isPortrait = preset.height > preset.width;
@@ -348,36 +348,47 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
                           setWidth(preset.width);
                           setHeight(preset.height);
                         }}
-                        className={`group relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 ${
+                        className={`group relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-300 ${
                           isActive 
-                            ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600 shadow-sm' 
-                            : 'border-slate-100 bg-slate-50/50 hover:border-indigo-200 hover:bg-white'
+                            ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-lg shadow-indigo-100' 
+                            : 'border-slate-100 bg-white hover:border-indigo-200 hover:shadow-md hover:-translate-y-0.5'
                         }`}
                       >
-                        {/* Interactive Visual Shape Indicator */}
-                        <div className="mb-2 h-8 w-12 flex items-center justify-center">
+                        {/* Visual Shape Indicator */}
+                        <div className="mb-3 h-10 w-full flex items-center justify-center">
                           <div 
-                            className={`rounded-sm border-2 transition-colors ${isActive ? 'border-indigo-500 bg-indigo-100' : 'border-slate-300 bg-slate-100 group-hover:border-indigo-300'}`}
+                            className={`rounded-md border-2 transition-all duration-300 ${
+                              isActive 
+                                ? 'border-indigo-500 bg-indigo-100 scale-110' 
+                                : 'border-slate-200 bg-slate-50 group-hover:border-indigo-300 group-hover:bg-indigo-50/30'
+                            }`}
                             style={{
-                              width: isSquare ? '20px' : isPortrait ? '14px' : '28px',
-                              height: isSquare ? '20px' : isPortrait ? '24px' : '16px',
-                              aspectRatio: `${preset.width}/${preset.height}`
+                              width: isSquare ? '24px' : isPortrait ? '18px' : '36px',
+                              height: isSquare ? '24px' : isPortrait ? '30px' : '20px',
+                              boxShadow: isActive ? '0 0 15px rgba(99, 102, 241, 0.2)' : 'none'
                             }}
                           />
                         </div>
                         
-                        <span className={`text-xs font-bold ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>
-                          {preset.label}
-                        </span>
-                        
-                        <div className="mt-1 flex flex-col items-center">
-                          <span className="text-[8px] font-medium text-slate-400">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className={`text-xs font-bold leading-none ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>
+                            {preset.label}
+                          </span>
+                          <span className="text-[9px] font-medium text-slate-400">
                              {preset.width}x{preset.height}
                           </span>
                         </div>
                         
-                        {/* Tooltip-like label on hover if needed, or keep it simple */}
-                        <div className={`absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none shadow-xl`}>
+                        {isActive && (
+                          <div className="absolute -top-1 -right-1">
+                            <div className="bg-indigo-600 text-white rounded-full p-0.5 shadow-md">
+                              <CheckCircle2 className="h-3 w-3" />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Premium Tooltip */}
+                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-2 group-hover:translate-y-0 whitespace-nowrap z-30 pointer-events-none shadow-xl border border-white/10 font-medium">
                           {preset.app}
                         </div>
                       </button>

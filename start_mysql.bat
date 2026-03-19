@@ -1,0 +1,3 @@
+@echo off
+echo Dang khoi dong MySQL Server (Local Data)...
+"C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqld.exe" --datadir="C:\Users\phanm\Downloads\220334_TIEN_PHONG_TT_VL_2026\mysql_data" --console --port=3306

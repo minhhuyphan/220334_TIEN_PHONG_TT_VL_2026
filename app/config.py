@@ -10,7 +10,14 @@ class Settings:
     DIR_ROOT = os.path.dirname(os.path.abspath(".env"))
     
     # DATABASE
+    DB_TYPE = os.getenv("DB_TYPE", "sqlite")
     DB_PATH = os.getenv("DB_PATH", os.path.join(DIR_ROOT, "banner_ai.db"))
+    DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
+    DB_PORT = int(os.getenv("DB_PORT", "4000"))
+    DB_USER = os.getenv("DB_USER", "root")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+    DB_DATABASE = os.getenv("DB_DATABASE", "banner_ai")
+    DB_SSL = os.getenv("DB_SSL", "")
     
  
     # AUTH & SECURITY

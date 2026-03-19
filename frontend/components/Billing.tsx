@@ -132,7 +132,7 @@ const Billing: React.FC<BillingProps> = ({ user, refreshUser }) => {
                                    <div className="p-1 rounded-full bg-green-100 text-green-600 flex-shrink-0">
                                      <Check className="h-3 w-3" />
                                    </div>
-                                   <span className="text-xs md:text-sm">Tạo banner không giới hạn</span>
+                                   <span className="text-xs md:text-sm">Mở khóa tất cả tỷ lệ khung hình</span>
                                 </li>
                                 <li className="flex items-center gap-3 text-slate-600">
                                    <div className="p-1 rounded-full bg-green-100 text-green-600 flex-shrink-0">
