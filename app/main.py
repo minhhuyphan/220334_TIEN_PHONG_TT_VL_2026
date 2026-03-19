@@ -34,6 +34,11 @@ if not os.path.exists(BANNERS_DIR):
 
 app.mount("/banners", StaticFiles(directory=BANNERS_DIR), name="banners")
 
+# Ensure download dir exists for generated banners
+DOWNLOAD_DIR = os.path.join(project_root, "utils", "download")
+if not os.path.exists(DOWNLOAD_DIR):
+    os.makedirs(DOWNLOAD_DIR)
+
 # Gom nhóm các router vào prefix /api/v1
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)
