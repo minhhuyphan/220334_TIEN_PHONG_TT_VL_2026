@@ -223,3 +223,29 @@ class UserManager(DBConnection):
         self.cursor.execute(sql, (email,))
         self.commit()
         return self.cursor.rowcount
+
+class BannerDetails(DBConnection):
+    def get_pending(self):
+        sql = "SELECT * FROM banner_history WHERE status = 0 LIMIT 1"
+        self.cursor.execute(sql)
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+
+    def update_status(self, banner_id, status):
+        sql = f"UPDATE banner_history SET status = {self.p}, updated_at = CURRENT_TIMESTAMP WHERE id = {self.p}"
+        self.cursor.execute(sql, (status, banner_id))
+        self.commit()
+        return self.cursor.rowcount
+
+class Banners(DBConnection):
+    def create(self, banner_details_id, image_url, is_selected=False, score=0):
+        sql = f"""
+            INSERT INTO banners (banner_details_id, image_url, is_selected, score)
+            VALUES ({self.p}, {self.p}, {self.p}, {self.p})
+        """
+        self.cursor.execute(sql, (banner_details_id, image_url, 1 if is_selected else 0, score))
+        self.commit()
+        return self.cursor.lastrowid
+
+# Legacy aliases
+Users = UserManager
