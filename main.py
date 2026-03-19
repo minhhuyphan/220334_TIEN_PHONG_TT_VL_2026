@@ -28,7 +28,7 @@ def parse_description_conditions(description: str):
     """
     # THAY ĐỔI: Chuyển từ XAI sang OpenAI GPT để phân tích điều kiện
     llm_generate = PromptAnalyzer(
-        LLM().get_llm(os.environ["LLM_NAME_OPENAI"])
+        LLM().get_llm(settings.LLM_NAME_OPENAI)
     ).get_chain()
 
     conditions = llm_generate.invoke({"description": description})
@@ -47,7 +47,7 @@ def generate_prompt(aspect_ratio: str, user_request: str, size_images: str):
     """
 
     llm_generate = PromptGenerator(
-        LLM().get_llm(os.environ["LLM_NAME_OPENAI"])
+        LLM().get_llm(settings.LLM_NAME_OPENAI)
     ).get_chain()
 
     prompt = llm_generate.invoke(
@@ -140,9 +140,9 @@ def create_image(
     aspect_ratio="3:3",
     number=1,
     user_request="tạo 1 banner",
-    NUMBER_COUNT_FOR_MAX=int(os.environ["NUMBER_COUNT_FOR_MAX"]),
+    NUMBER_COUNT_FOR_MAX=int(os.getenv("NUMBER_COUNT_FOR_MAX", "3")),
 ):
-    # NUMBER_COUNT_FOR_MAX = os.environ["NUMBER_COUNT_FOR_MAX"]
+    # NUMBER_COUNT_FOR_MAX = os.getenv("NUMBER_COUNT_FOR_MAX", "3")
 
     size_images = f"s {width}, h {height}"
     max_attempts = number * 1
@@ -213,12 +213,10 @@ def main():
                     user_data = user_obj.get_by_id(user_id)
                     user_token = user_data["tokens"]
 
-                    if user_token < banner_details_token * int(
-                        os.environ["NUMBER_COUNT_FOR_MAX"]
-                    ):
+                    if user_token < banner_details_token * settings.NUMBER_COUNT_FOR_MAX:
                         number_count_for_max = 1
                     else:
-                        number_count_for_max = int(os.environ["NUMBER_COUNT_FOR_MAX"])
+                        number_count_for_max = settings.NUMBER_COUNT_FOR_MAX
 
                     print("🖼️ Đang tạo ảnh...")
 
@@ -232,7 +230,7 @@ def main():
                     )
 
                     link_image = (
-                        f"{os.environ['URL_API']}/api/v1/upload-file/view/{file_name}"
+                        f"{settings.URL_API}/api/v1/upload-file/view/{file_name}"
                     )
 
                     banners_obj = Banners()
