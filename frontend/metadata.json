@@ -1,0 +1,7 @@
+{
+  "name": "BannerAI Studio",
+  "description": "A high-end AI-powered banner generation platform featuring Google authentication, real-time token management, and integrated QR payments.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,0 +1,58 @@
+from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
+from app.routers import file_upload, banner, auth, payment, admin
+
+# Tạo instance của FastAPI với đường dẫn Docs tùy chỉnh
+app = FastAPI(
+    title="API BANNER AI", 
+    version="v1.0",
+    docs_url="/api/v1/docs",
+    openapi_url="/api/v1/openapi.json",
+    redoc_url=None
+)
+
+# Thêm middleware xử lý Proxy Headers (cho Nginx/SSL)
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+
+# Cấu hình CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Cho phép tất cả để tránh lỗi CORS khi debug domain mới
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Cấu hình thư mục tĩnh để phục vụ file banner
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BANNERS_DIR = os.path.join(project_root, "banners")
+if not os.path.exists(BANNERS_DIR):
+    os.makedirs(BANNERS_DIR)
+
+app.mount("/banners", StaticFiles(directory=BANNERS_DIR), name="banners")
+
+# Gom nhóm các router vào prefix /api/v1
+api_router = APIRouter(prefix="/api/v1")
+api_router.include_router(auth.router)
+api_router.include_router(payment.router)
+api_router.include_router(file_upload.router)
+api_router.include_router(banner.router)
+api_router.include_router(admin.router)
+
+# Include router tổng vào app
+app.include_router(api_router)
+
+from app.utils.task_manager import ram_task_manager
+from app.utils.db_sqlite import check_and_migrate_db
+
+@app.on_event("startup")
+async def startup_event():
+    check_and_migrate_db() # Kiểm tra và update DB schema nếu thiếu
+    await ram_task_manager.start_worker()
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to API BANNER AI", "status": "running"}
