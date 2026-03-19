@@ -387,9 +387,10 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
                           </div>
                         )}
                         
-                        {/* Premium Tooltip */}
-                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-2 group-hover:translate-y-0 whitespace-nowrap z-30 pointer-events-none shadow-xl border border-white/10 font-medium">
+                        {/* Premium Tooltip (Bottom/Top) */}
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-200 -translate-y-2 group-hover:translate-y-0 whitespace-nowrap z-50 pointer-events-none shadow-2xl border border-white/10 font-bold scale-90 group-hover:scale-100 origin-bottom">
                           {preset.app}
+                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45" />
                         </div>
                       </button>
                     );
