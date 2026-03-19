@@ -15,26 +15,28 @@ def get_db_connection():
             'user': settings.DB_USER,
             'password': settings.DB_PASSWORD,
             'database': settings.DB_DATABASE,
-            'autocommit': True
+            'autocommit': True,
+            'connect_timeout': 10 # Giới hạn 10 giây để tránh Render bị timeout
         }
         
-        # TiDB Cloud requires TLS
+        # TiDB Cloud requires TLS (SSL)
         if hasattr(settings, "DB_SSL") and settings.DB_SSL:
-            # If it's a JSON string or dict
-            ssl_config = settings.DB_SSL
-            if isinstance(ssl_config, str):
+            ssl_val = settings.DB_SSL
+            if isinstance(ssl_val, str) and ssl_val.startswith('{'):
                 try:
-                    ssl_config = json.loads(ssl_config)
+                    ssl_dict = json.loads(ssl_val)
+                    if 'ca' in ssl_dict:
+                        config['ssl_ca'] = ssl_dict['ca']
                 except:
-                    ssl_config = {}
+                    pass
+            elif isinstance(ssl_val, str) and ssl_val:
+                # If it's a raw string, use as CA path
+                config['ssl_ca'] = ssl_val
+            
+            # Ensure SSL is NOT disabled
             config['ssl_disabled'] = False
-            # Usually TiDB works with just an empty dict if the server provides the cert
-            # Or we might need to specify a CA. For now, try default TLS.
-            config['ssl_ca'] = ssl_config.get('ca', '')
             
         conn = mysql.connector.connect(**config)
-        # To match sqlite3.Row behavior (access by name)
-        # Note: mysql.connector has dictionary=True in cursor() usually.
         return conn
     else:
         # Default to SQLite
