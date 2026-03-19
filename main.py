@@ -273,3 +273,6 @@ if __name__ == "__main__":
             time.sleep(1)
         except:  # noqa: E722
             pass
+
+# Export app for Render (FastAPI Support)
+from app.main import app
