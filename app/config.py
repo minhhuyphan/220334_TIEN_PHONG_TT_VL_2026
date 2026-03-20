@@ -46,9 +46,9 @@ class Settings:
     # MODEL NAMES
     OPENAI_LLM = os.getenv("OPENAI_LLM", "gpt-4o-mini")
     
-    # Google Model Configurations
-    GOOGLE_LLM = os.getenv("GOOGLE_LLM", "gemini-1.5-flash")
-    GOOGLE_LLM_IMAGE = os.getenv("GOOGLE_LLM_IMAGE", "imagen-3.0-generate-001")
+    # Google Model Configurations - UPGRADED TO 3.1 & 4.0
+    GOOGLE_LLM = os.getenv("GOOGLE_LLM", "gemini-3.1-pro-preview")
+    GOOGLE_LLM_IMAGE = os.getenv("GOOGLE_LLM_IMAGE", "imagen-4.0-generate-001")
     LLM_NAME_GOOGLE = GOOGLE_LLM
     LLM_NAME_OPENAI = os.getenv("LLM_NAME_OPENAI", OPENAI_LLM)
 
