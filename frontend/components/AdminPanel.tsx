@@ -1132,6 +1132,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
                                 onChange={(e) => setImageModel(e.target.value)}
                                 className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                               >
+                                <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image (Vẽ chữ VIP)</option>
                                 <option value="imagen-4.0-generate-001">Imagen 4.0 Ultra (Đẳng cấp nhất)</option>
                                 <option value="gemini-3.0-fast-image-preview">Gemini 3.0 Fast Image (Preview)</option>
                                 <option value="gemini-2.5-flash-image">Gemini 2.5 Flash Image</option>
