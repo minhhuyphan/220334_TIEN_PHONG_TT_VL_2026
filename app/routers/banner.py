@@ -62,27 +62,7 @@ BASE_DIR = os.path.join(project_root, "banners")
 if not os.path.exists(BASE_DIR):
     os.makedirs(BASE_DIR)
 
-def fix_banner_url(url: str, request: Request = None):
-    if not url: return url
-    # Lấy tên file từ URL hoặc đường dẫn
-    filename = url.split("/")[-1]
-    
-    base = settings.API_URL
-    if request:
-        # Lấy base URL từ request (e.g., https://autobanner.adhightech.com)
-        base = str(request.base_url).rstrip('/')
-        
-        # Xử lý Mixed Content: Nếu chạy sau Nginx/Proxy có SSL
-        forwarded_proto = request.headers.get("x-forwarded-proto")
-        if forwarded_proto == "https" and base.startswith("http://"):
-            base = base.replace("http://", "https://", 1)
-        elif not forwarded_proto and base.startswith("http://") and "localhost" not in base:
-            # Nếu không có header nhưng domain là thật (không phải localhost), 
-            # có thể cân nhắc force https hoặc giữ nguyên. 
-            # Tốt nhất là tin vào forwarded_proto.
-            pass
-            
-    return f"{base}/api/v1/generate/view/{filename}"
+from app.utils.url import fix_banner_url
 
 async def generate_prompt_text(aspect_ratio: str, resolution: str, user_request: str):
     llm_generate = PromptGenerator(LLM().get_llm(settings.LLM_PROVIDER)).get_chain()

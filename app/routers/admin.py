@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
-from app.models.banner_db import UserManager, PaymentManager, BannerHistoryManager, PackageManager, ConfigManager
 from app.security.jwt import get_current_user
-from typing import Dict, Any
+from app.utils.url import fix_banner_url
+from fastapi import APIRouter, Depends, HTTPException, Body, Request
+from typing import Dict, Any, List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -87,12 +87,15 @@ async def get_all_payments(
 
 @router.get("/banners")
 async def get_all_banners(
+    request: Request,
     admin: dict = Depends(verify_admin),
     banner_manager: BannerHistoryManager = Depends(get_banner_manager)
 ):
     """Get all banners (admin only)"""
     try:
         banners = banner_manager.get_all()
+        for b in banners:
+            b['image_url'] = fix_banner_url(b['image_url'], request)
         return banners
     except Exception as e:
         logger.error(f"Admin Error fetching banners: {str(e)}")
@@ -100,6 +103,7 @@ async def get_all_banners(
 
 @router.get("/stats")
 async def get_stats(
+    request: Request,
     admin: dict = Depends(verify_admin),
     user_manager: UserManager = Depends(get_user_manager)
 ):
@@ -171,7 +175,11 @@ async def get_stats(
             LEFT JOIN users u ON b.user_id = u.id
             ORDER BY b.created_at DESC LIMIT 5
         """)
-        recent_banners = [dict(row) for row in cursor.fetchall()]
+        recent_banners = []
+        for row in cursor.fetchall():
+            d = dict(row)
+            d['image_url'] = fix_banner_url(d['image_url'], request)
+            recent_banners.append(d)
 
         # Cost estimate: API cost (assume 100 VNĐ per banner for Image Gen + LLM)
         api_cost_estimate = total_banners * 100
@@ -391,12 +399,15 @@ async def delete_user(
 @router.get("/users/{user_id}/banners")
 async def get_user_banners(
     user_id: int,
+    request: Request,
     admin: dict = Depends(verify_admin),
     banner_manager: BannerHistoryManager = Depends(get_banner_manager)
 ):
     """Get banner history for a specific user"""
     try:
         banners = banner_manager.get_all(user_id)
+        for b in banners:
+            b['image_url'] = fix_banner_url(b['image_url'], request)
         return banners
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching user banners: {str(e)}")
