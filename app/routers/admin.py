@@ -128,20 +128,21 @@ async def get_stats(
         total_tokens_sold = cursor.fetchone()['total']
         
         # Daily banners (last 7 days)
-        cursor.execute("""
+        # MySQL compatible date subtraction
+        cursor.execute(f"""
             SELECT date(created_at) as date, COUNT(*) as count
             FROM banner_history
-            WHERE created_at >= date('now', '-7 days')
+            WHERE created_at >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)
             GROUP BY date(created_at)
             ORDER BY date ASC
         """)
         daily_banners = [dict(row) for row in cursor.fetchall()]
         
         # Daily revenue (last 7 days)
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT date(created_at) as date, SUM(amount_vnd) as revenue
             FROM payments 
-            WHERE status = 'completed' AND created_at >= date('now', '-7 days')
+            WHERE status = 'completed' AND created_at >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)
             GROUP BY date(created_at)
             ORDER BY date ASC
         """)
@@ -218,7 +219,7 @@ async def toggle_admin(
         conn = user_manager.conn
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE users SET is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            f"UPDATE users SET is_admin = {user_manager.p}, updated_at = CURRENT_TIMESTAMP WHERE id = {user_manager.p}",
             (new_status, user_id)
         )
         conn.commit()
@@ -346,7 +347,7 @@ async def add_tokens_to_user(
         conn = user_manager.conn
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE users SET tokens = tokens + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            f"UPDATE users SET tokens = tokens + {user_manager.p}, updated_at = CURRENT_TIMESTAMP WHERE id = {user_manager.p}",
             (tokens, user_id)
         )
         conn.commit()
@@ -372,10 +373,10 @@ async def delete_user(
             
         conn = user_manager.conn
         cursor = conn.cursor()
-        # Delete user related data (sqlite cascading if enabled, otherwise manual)
-        cursor.execute("DELETE FROM banner_history WHERE user_id = ?", (user_id,))
-        cursor.execute("DELETE FROM payments WHERE user_id = ?", (user_id,))
-        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        # Delete user related data
+        cursor.execute(f"DELETE FROM banner_history WHERE user_id = {user_manager.p}", (user_id,))
+        cursor.execute(f"DELETE FROM payments WHERE user_id = {user_manager.p}", (user_id,))
+        cursor.execute(f"DELETE FROM users WHERE id = {user_manager.p}", (user_id,))
         conn.commit()
         
         return {"success": True, "message": f"User {user['email']} and their data have been deleted"}

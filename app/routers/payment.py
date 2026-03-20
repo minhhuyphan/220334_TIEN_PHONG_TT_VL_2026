@@ -70,7 +70,7 @@ async def create_payment(
     payment_code = f"{settings.NAME_WEB}NAPTOKEN{hex_id}"
     
     # Update payment_code vào DB
-    sql = "UPDATE payments SET payment_code = ? WHERE id = ?"
+    sql = f"UPDATE payments SET payment_code = {payment_manager.p} WHERE id = {payment_manager.p}"
     payment_manager.cursor.execute(sql, (payment_code, payment_id))
     payment_manager.conn.commit()
     
@@ -100,7 +100,7 @@ async def check_payment_status(
     user_manager: UserManager = Depends(get_user_manager)
 ):
     # Lấy thông tin thanh toán từ DB check sở hữu
-    payment_manager.cursor.execute("SELECT * FROM payments WHERE id = ?", (payment_id,))
+    payment_manager.cursor.execute(f"SELECT * FROM payments WHERE id = {payment_manager.p}", (payment_id,))
     payment_row = payment_manager.cursor.fetchone()
     
     if not payment_row:
