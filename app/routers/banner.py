@@ -126,17 +126,28 @@ async def generate_banner(
 
         response = await asyncio.to_thread(sync_generate)
 
-        if not response or not hasattr(response, 'parts') or response.parts is None:
+        if not response:
             return None
 
-        for part in response.parts:
-            if part.inline_data is not None:
-                # PIL.Image.open cũng là sync, nhưng nhẹ. Vẫn nên to_thread nếu cẩn thận.
-                image = await asyncio.to_thread(Image.open, BytesIO(part.inline_data.data))
-                return image
+        # New SDK structure (Gemini 3.1 / 2.x)
+        if hasattr(response, 'candidates') and response.candidates:
+            for part in response.candidates[0].content.parts:
+                if part.inline_data:
+                    image = await asyncio.to_thread(Image.open, BytesIO(part.inline_data.data))
+                    return image
+        
+        # Fallback for direct parts shortcut (if exists)
+        if hasattr(response, 'parts') and response.parts:
+            for part in response.parts:
+                if part.inline_data:
+                    image = await asyncio.to_thread(Image.open, BytesIO(part.inline_data.data))
+                    return image
+                    
         return None
     except Exception as e:
-        print(f"Lỗi khi tạo banner: {e}")
+        import traceback
+        print(f"Lỗi khi tạo banner (Chi tiết): {e}")
+        traceback.print_exc()
         return None
 
 @router.get("/view/{file_id}")
