@@ -9,6 +9,10 @@ def fix_banner_url(url: str, request: Request = None):
     """
     if not url: return url
     
+    # Nếu là URL Cloud (Cloudinary hoặc host khác ổn định), trả về luôn
+    if url.startswith("http") and not any(h in url for h in ["localhost", "127.0.0.1"]):
+        return url
+
     # Lấy tên file từ URL hoặc đường dẫn
     # Ví dụ: http://localhost:55002/api/v1/generate/view/abc.png -> abc.png
     filename = url.split("/")[-1]

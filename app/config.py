@@ -39,6 +39,11 @@ class Settings:
     SEPAY_ACCOUNT_NUMBER = os.getenv("SEPAY_ACCOUNT_NUMBER")
     SEPAY_BANK_BRAND = os.getenv("SEPAY_BANK_BRAND")
 
+    # Cloudinary Cloud Storage
+    CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "dgxfqh7qx")
+    CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+    CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+
     # MODEL PROVIDERS
     IMAGE_MODEL_PROVIDER = os.getenv("IMAGE_MODEL_PROVIDER", "google")
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")

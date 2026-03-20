@@ -330,8 +330,12 @@ async def process_banner_task(task_id: str, user_id: int, request_data: dict):
                 file_path = os.path.join(BASE_DIR, file_name)
                 await asyncio.to_thread(banner.save, file_path, "PNG")
                 
-                # Dùng URL ổn định qua route /view để tránh lỗi port/host
-                banner_url = f"{settings.API_URL}/api/v1/generate/view/{file_name}"
+                # Tải lên Cloudinary để lưu trữ vĩnh viễn (Phòng trường hợp chạy local/restart Render)
+                from app.utils.cloudinary_utils import upload_to_cloudinary
+                cloud_url = await asyncio.to_thread(upload_to_cloudinary, file_path)
+                
+                # Ưu tiên dùng Cloud URL, nếu thất bại mới dùng Local URL
+                banner_url = cloud_url if cloud_url else f"{settings.API_URL}/api/v1/generate/view/{file_name}"
                 # Fallback if API_URL not set in settings? app/config.py usually has it?
                 # If not, let's use relative path "/banners/..." and let frontend prepend host if needed.
                 # User's previous code used `request.url_for`.
