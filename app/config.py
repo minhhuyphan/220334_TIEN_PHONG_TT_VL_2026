@@ -43,6 +43,9 @@ class Settings:
     IMAGE_MODEL_PROVIDER = os.getenv("IMAGE_MODEL_PROVIDER", "google")
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
     
+    # MODEL NAMES
+    OPENAI_LLM = os.getenv("OPENAI_LLM", "gpt-4o-mini")
+    
     # Google Model Configurations
     GOOGLE_LLM = os.getenv("GOOGLE_LLM", "gemini-1.5-flash")
     GOOGLE_LLM_IMAGE = os.getenv("GOOGLE_LLM_IMAGE", "imagen-3.0-generate-001")
