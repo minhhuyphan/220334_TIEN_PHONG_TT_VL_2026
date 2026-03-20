@@ -1109,6 +1109,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
                                 onChange={(e) => setAiModel(e.target.value)}
                                 className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                               >
+                                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Bộ não mạnh nhất)</option>
                                 <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                                 <option value="gemini-2.5-pro">Gemini 2.5 Pro (Nâng cao)</option>
                                 <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
@@ -1131,6 +1132,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
                                 onChange={(e) => setImageModel(e.target.value)}
                                 className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                               >
+                                <option value="imagen-4.0-generate-001">Imagen 4.0 Ultra (Đẳng cấp nhất)</option>
                                 <option value="gemini-3.0-fast-image-preview">Gemini 3.0 Fast Image (Preview)</option>
                                 <option value="gemini-2.5-flash-image">Gemini 2.5 Flash Image</option>
                                 <option value="gemini-2.5-pro-image">Gemini 2.5 Pro Image</option>
