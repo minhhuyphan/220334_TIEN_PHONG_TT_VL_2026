@@ -62,11 +62,14 @@ async def google_login(
             }
         }
 
-    except ValueError:
-        raise HTTPException(status_code=401, detail="Invalid Google Token")
+    except ValueError as ve:
+        print(f"Google Token Validation Error: {ve}")
+        raise HTTPException(status_code=401, detail=f"Invalid Google Token: {ve}")
     except Exception as e:
-        print(f"Auth Error: {e}")
-        raise HTTPException(status_code=500, detail="Authentication Failed")
+        print(f"AUTHENTICATION SYSTEM ERROR: {type(e).__name__} - {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Authentication Failed. Please check server logs.")
 
 @router.get("/me")
 async def get_current_user_profile(user: dict = Depends(get_current_user)):
