@@ -44,6 +44,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         user = user_manager.get_by_id(user_id)
         if user is None:
             raise credentials_exception
+            
+        # Tự động cấp quyền Admin nếu email nằm trong danh sách ADMIN_EMAILS
+        if settings.ADMIN_EMAILS:
+            admin_list = [e.strip().lower() for e in settings.ADMIN_EMAILS.split(",")]
+            if user['email'].lower() in admin_list:
+                user['is_admin'] = 1
+                
         return user
     finally:
         user_manager.close()

@@ -50,6 +50,7 @@ class Settings:
     LLM_NAME_OPENAI = os.getenv("LLM_NAME_OPENAI", OPENAI_LLM)
 
     # OTHER SETTINGS
+    ADMIN_EMAILS = os.getenv("ADMIN_EMAILS", "") # Danh sách email Admin, cách nhau bởi dấu phẩy
     API_URL = os.getenv("API_URL", "http://localhost:55002")
     URL_API = os.getenv("URL_API", API_URL)
     NUM_DOC = int(os.getenv("NUM_DOC", "3"))
