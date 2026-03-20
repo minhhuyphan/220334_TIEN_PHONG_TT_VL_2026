@@ -51,7 +51,7 @@ api_router.include_router(admin.router)
 app.include_router(api_router)
 
 from app.utils.task_manager import ram_task_manager
-from app.utils.db_sqlite import check_and_migrate_db
+from app.utils.database import check_and_migrate_db
 
 @app.on_event("startup")
 async def startup_event():

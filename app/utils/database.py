@@ -50,10 +50,10 @@ def init_db():
     
     db_type = getattr(settings, "DB_TYPE", "sqlite").lower()
     
-    # Drop tables for re-init (be careful with production!)
-    tables = ["users", "packages", "payments", "banner_history", "system_configs", "tasks"]
-    for table in tables:
-        cursor.execute(f"DROP TABLE IF EXISTS {table}")
+    # [FIXED] NEVER DROP TABLES ON STARTUP!
+    # tables = ["users", "packages", "payments", "banner_history", "system_configs", "tasks"]
+    # for table in tables:
+    #     cursor.execute(f"DROP TABLE IF EXISTS {table}")
     
     # Auto-increment syntax differs
     auto_inc = "AUTO_INCREMENT" if db_type == "mysql" else "AUTOINCREMENT"
@@ -143,16 +143,22 @@ def init_db():
     )
     ''')
     
-    # Thêm dữ liệu mẫu cho Packages
-    placeholder = "%s" if db_type == "mysql" else "?"
-    cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Khởi Đầu", 10, 20000))
-    cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Cơ Bản", 50, 100000))
-    cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Phổ Biến", 110, 200000))
-    cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Chuyên Nghiệp", 300, 500000))
+    # Thêm dữ liệu mẫu cho Packages (Chỉ thêm nếu bảng trống)
+    cursor.execute("SELECT COUNT(*) as count FROM packages")
+    row = cursor.fetchone()
+    count = row[0] if isinstance(row, tuple) else row['count']
+    
+    if count == 0:
+        placeholder = "%s" if db_type == "mysql" else "?"
+        cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Khởi Đầu", 10, 20000))
+        cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Cơ Bản", 50, 100000))
+        cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Phổ Biến", 110, 200000))
+        cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Chuyên Nghiệp", 300, 500000))
+        print("✅ Added default packages.")
     
     conn.commit()
     conn.close()
-    print(f"✅ Database re-initialized ({db_type.upper()}).")
+    print(f"✅ Database initialized ({db_type.upper()}). Persistence is now active.")
 
 def check_and_migrate_db():
     # Simplification: For now, if MySQL, just ensure tables exist. 

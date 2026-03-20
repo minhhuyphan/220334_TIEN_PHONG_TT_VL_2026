@@ -5,7 +5,7 @@ Usage: python set_admin.py <email>
 import sys
 import sqlite3
 from app.config import settings
-from app.utils.db_sqlite import get_db_connection
+from app.utils.database import get_db_connection
 
 
 def set_admin_by_email(email: str) -> bool:

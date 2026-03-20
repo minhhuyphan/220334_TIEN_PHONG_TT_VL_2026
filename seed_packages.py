@@ -1,8 +1,8 @@
-import sqlite3
 import os
 import traceback
 import sys
-import datetime
+from app.utils.database import get_db_connection
+from app.config import settings
 
 # Define packages
 packages = [
@@ -36,17 +36,13 @@ packages = [
     }
 ]
 
-DB_PATH = "banner_ai.db"
-
 def seed_packages():
-    # If using absolute path for safety in agent env
-    db_abs_path = os.path.join(os.getcwd(), DB_PATH)
-    
-    print(f"Connecting to {db_abs_path}")
+    print(f"Connecting to database type: {settings.DB_TYPE}...")
     
     conn = None
     try:
-        conn = sqlite3.connect(db_abs_path)
+        conn = get_db_connection()
+        db_type = getattr(settings, "DB_TYPE", "sqlite").lower()
         cursor = conn.cursor()
 
         # Check existing columns
@@ -61,42 +57,19 @@ def seed_packages():
                 cursor.execute("ALTER TABLE packages RENAME COLUMN price_vnd TO amount_vnd")
                 print("Renamed successfully.")
                 col_names = [c if c != 'price_vnd' else 'amount_vnd' for c in col_names]
-            
-            # Add missing columns safely ONE BY ONE
-            if 'description' not in col_names:
-                print("Adding missing column: description")
-                try:
-                    cursor.execute("ALTER TABLE packages ADD COLUMN description TEXT")
-                except Exception as e:
-                    print(f"Error adding description: {e}")
-                
-            if 'created_at' not in col_names:
-                print("Adding missing column: created_at")
-                try:
-                    # Try without default first if default fails
-                    cursor.execute("ALTER TABLE packages ADD COLUMN created_at TIMESTAMP")
-                    cursor.execute("UPDATE packages SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
-                except Exception as e:
-                    print(f"Error adding created_at: {e}")
-                
-            if 'updated_at' not in col_names:
-                print("Adding missing column: updated_at")
-                try:
-                    cursor.execute("ALTER TABLE packages ADD COLUMN updated_at TIMESTAMP")
-                    cursor.execute("UPDATE packages SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL")
-                except Exception as e:
-                    print(f"Error adding updated_at: {e}")
-
-        except sqlite3.OperationalError as e:
-            print(f"OperationalError checking columns: {e}")
+        except:
             print("Table packages might not exist. Creating...")
 
-        # Create table if it really doesn't exist (this block is safe to run even if table exists safely ignored)
-        cursor.execute("""
+        # Create table with correct syntax for DB type
+        auto_inc = "AUTO_INCREMENT" if db_type == "mysql" else "AUTOINCREMENT"
+        pk_type = "INT" if db_type == "mysql" else "INTEGER"
+        text_type = "LONGTEXT" if db_type == "mysql" else "TEXT"
+        
+        cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS packages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT,
+            id {pk_type} PRIMARY KEY {auto_inc},
+            name VARCHAR(255) NOT NULL,
+            description {text_type},
             amount_vnd INTEGER NOT NULL,
             tokens INTEGER NOT NULL,
             is_active INTEGER DEFAULT 1,
@@ -105,25 +78,36 @@ def seed_packages():
         )
         """)
 
+        # Determine placeholder based on DB type
+        p = "%s" if db_type == "mysql" else "?"
+
         # Check/Insert
         print("Seeding packages...")
         for pkg in packages:
             # Check if exists by name to avoid duplicates
-            cursor.execute("SELECT id FROM packages WHERE name = ?", (pkg['name'],))
+            cursor.execute(f"SELECT id FROM packages WHERE name = {p}", (pkg['name'],))
             existing = cursor.fetchone()
             
-            if existing:
+            # For MySQL cursor(dictionary=True), existing is a dict
+            if isinstance(existing, dict):
+                pkg_id = existing['id']
+            elif existing:
+                pkg_id = existing[0]
+            else:
+                pkg_id = None
+            
+            if pkg_id:
                 print(f"Update package: {pkg['name']}")
-                cursor.execute("""
+                cursor.execute(f"""
                     UPDATE packages 
-                    SET description = ?, amount_vnd = ?, tokens = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
-                    WHERE id = ?
-                """, (pkg['description'], pkg['amount_vnd'], pkg['tokens'], pkg['is_active'], existing[0]))
+                    SET description = {p}, amount_vnd = {p}, tokens = {p}, is_active = {p}, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = {p}
+                """, (pkg['description'], pkg['amount_vnd'], pkg['tokens'], pkg['is_active'], pkg_id))
             else:
                 print(f"Insert package: {pkg['name']}")
-                cursor.execute("""
+                cursor.execute(f"""
                     INSERT INTO packages (name, description, amount_vnd, tokens, is_active)
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES ({p}, {p}, {p}, {p}, {p})
                 """, (pkg['name'], pkg['description'], pkg['amount_vnd'], pkg['tokens'], pkg['is_active']))
 
         conn.commit()

@@ -2,7 +2,7 @@ import sqlite3
 import os
 from datetime import datetime
 from app.config import settings
-from app.utils.db_sqlite import get_db_connection
+from app.utils.database import get_db_connection
 
 class DBConnection:
     def __init__(self):
