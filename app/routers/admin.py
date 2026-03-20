@@ -51,13 +51,14 @@ async def get_all_users(
     try:
         # Get all users from database
         conn = user_manager.conn
-        cursor = conn.cursor()
+        # Use the pre-configured dictionary cursor from manager
+        cursor = user_manager.cursor
         cursor.execute("""
             SELECT id, email, full_name, tokens, is_admin, created_at, updated_at
             FROM users
             ORDER BY created_at DESC
         """)
-        users = [dict(row) for row in cursor.fetchall()]
+        users = cursor.fetchall()
         return users
     except Exception as e:
         logger.error(f"Admin Error fetching users: {str(e)}")
@@ -71,14 +72,14 @@ async def get_all_payments(
     """Get all payments (admin only)"""
     try:
         conn = payment_manager.conn
-        cursor = conn.cursor()
+        cursor = payment_manager.cursor
         cursor.execute("""
             SELECT p.*, pk.name as package_name
             FROM payments p
             LEFT JOIN packages pk ON p.package_id = pk.id
             ORDER BY p.created_at DESC
         """)
-        payments = [dict(row) for row in cursor.fetchall()]
+        payments = cursor.fetchall()
         return payments
     except Exception as e:
         logger.error(f"Admin Error fetching payments: {str(e)}")
@@ -105,30 +106,34 @@ async def get_stats(
     """Get system statistics (admin only)"""
     try:
         conn = user_manager.conn
-        cursor = conn.cursor()
+        cursor = user_manager.cursor
         
         # Total users
         cursor.execute("SELECT COUNT(*) as count FROM users")
-        total_users = cursor.fetchone()['count']
+        row_users = cursor.fetchone()
+        total_users = row_users['count'] if row_users else 0
         
         # Total admins
         cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 1")
-        total_admins = cursor.fetchone()['count']
+        row_admins = cursor.fetchone()
+        total_admins = row_admins['count'] if row_admins else 0
         
         # Total revenue (completed payments only)
         cursor.execute("SELECT COALESCE(SUM(amount_vnd), 0) as total FROM payments WHERE status = 'completed'")
-        total_revenue = cursor.fetchone()['total']
+        row_revenue = cursor.fetchone()
+        total_revenue = row_revenue['total'] if row_revenue else 0
         
         # Total banners
         cursor.execute("SELECT COUNT(*) as count FROM banner_history")
-        total_banners = cursor.fetchone()['count']
+        row_banners = cursor.fetchone()
+        total_banners = row_banners['count'] if row_banners else 0
         
         # Total tokens sold
         cursor.execute("SELECT COALESCE(SUM(tokens_received), 0) as total FROM payments WHERE status = 'completed'")
-        total_tokens_sold = cursor.fetchone()['total']
+        row_tokens = cursor.fetchone()
+        total_tokens_sold = row_tokens['total'] if row_tokens else 0
         
         # Daily banners (last 7 days)
-        # MySQL compatible date subtraction
         cursor.execute(f"""
             SELECT date(created_at) as date, COUNT(*) as count
             FROM banner_history
@@ -136,7 +141,7 @@ async def get_stats(
             GROUP BY date(created_at)
             ORDER BY date ASC
         """)
-        daily_banners = [dict(row) for row in cursor.fetchall()]
+        daily_banners = cursor.fetchall()
         
         # Daily revenue (last 7 days)
         cursor.execute(f"""
@@ -146,7 +151,7 @@ async def get_stats(
             GROUP BY date(created_at)
             ORDER BY date ASC
         """)
-        daily_revenue = [dict(row) for row in cursor.fetchall()]
+        daily_revenue = cursor.fetchall()
         
         # Recent 5 payments
         cursor.execute("""
