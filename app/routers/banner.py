@@ -25,6 +25,7 @@ import json
 import asyncio
 from typing import Optional
 from app.utils.task_manager import ram_task_manager
+from app.utils.cloudinary_utils import upload_to_cloudinary
 
 router = APIRouter(prefix="/generate", tags=["banner"])
 
@@ -331,8 +332,7 @@ async def process_banner_task(task_id: str, user_id: int, request_data: dict):
                 await asyncio.to_thread(banner.save, file_path, "PNG")
                 
                 # Tải lên Cloudinary để lưu trữ vĩnh viễn (Phòng trường hợp chạy local/restart Render)
-                from app.utils.cloudinary_utils import upload_to_cloudinary
-                cloud_url = await asyncio.to_thread(upload_to_cloudinary, file_path)
+                cloud_url = await asyncio.to_thread(upload_to_cloudinary, file_path, folder="banners")
                 
                 # Ưu tiên dùng Cloud URL, nếu thất bại mới dùng Local URL
                 banner_url = cloud_url if cloud_url else f"{settings.API_URL}/api/v1/generate/view/{file_name}"
@@ -492,6 +492,14 @@ async def create_generate_task(
             
             reference_image_paths.append(file_path)
             valid_labels.append(new_labels[i])
+            
+            # Tải lên Cloudinary ngay lập tức (Reference Images)
+            try:
+                cloud_url = await asyncio.to_thread(upload_to_cloudinary, file_path, folder="references")
+                if cloud_url:
+                    print(f"Reference image uploaded to Cloudinary: {cloud_url}")
+            except Exception as e:
+                print(f"Lỗi tải ảnh tham chiếu lên Cloudinary: {e}")
     
     # 2. Validate Balance (bao gồm cả chi phí ảnh tham chiếu)
     cost_per_image = int(config_manager.get_value("banner_cost", "1"))
