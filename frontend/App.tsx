@@ -10,6 +10,7 @@ import Billing from './components/Billing';
 import History from './components/History';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
+import HomePage from './components/HomePage';
 import { Toaster, toast } from 'react-hot-toast';
 
 // Wrapper for components needing onNavigate
@@ -149,8 +150,14 @@ const AppContent: React.FC = () => {
     );
   }
 
+  // Khi chưa đăng nhập: hiển thị trang chủ public
   if (!user) {
-    return <Login onLoginSuccess={handleLogin} />;
+    return (
+      <Routes>
+        <Route path="/" element={<HomePage onLoginSuccess={handleLogin} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
   }
 
   return (

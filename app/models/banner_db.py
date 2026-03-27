@@ -68,15 +68,33 @@ class BannerHistoryManager(DBConnection):
         row = self.cursor.fetchone()
         return row['count'] if row else 0
 
-    def create(self, user_id, description, aspect_ratio, resolution, prompt, image_url, token_cost=1, reference_images=None):
+    def get_public_banners(self, limit=20):
+        """Lấy banner cho gallery trang chủ — hiển thị tất cả banner có ảnh hợp lệ."""
+        sql = f"""SELECT bh.id, bh.image_url, bh.request_description, bh.aspect_ratio,
+                         bh.created_at, u.full_name, u.avatar_url
+                  FROM banner_history bh
+                  LEFT JOIN users u ON bh.user_id = u.id
+                  WHERE bh.image_url IS NOT NULL AND bh.image_url != ''
+                  ORDER BY bh.created_at DESC
+                  LIMIT {self.p}"""
+        self.cursor.execute(sql, (limit,))
+        return [dict(row) for row in self.cursor.fetchall()]
+
+    def set_public(self, banner_id, user_id, is_public: bool):
+        """Toggle is_public cho banner của user."""
+        sql = f"UPDATE banner_history SET is_public = {self.p} WHERE id = {self.p} AND user_id = {self.p}"
+        self.cursor.execute(sql, (1 if is_public else 0, banner_id, user_id))
+        self.commit()
+        return self.cursor.rowcount
+
+    def create(self, user_id, description, aspect_ratio, resolution, prompt, image_url, token_cost=1, reference_images=None, is_public=True):
         sql = f"""
             INSERT INTO banner_history
-            (user_id, request_description, aspect_ratio, resolution, prompt_used, image_url, reference_images, token_cost)
-            VALUES ({self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p})
+            (user_id, request_description, aspect_ratio, resolution, prompt_used, image_url, reference_images, token_cost, is_public)
+            VALUES ({self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p})
         """
-        self.cursor.execute(sql, (user_id, description, aspect_ratio, resolution, prompt, image_url, reference_images, token_cost))
+        self.cursor.execute(sql, (user_id, description, aspect_ratio, resolution, prompt, image_url, reference_images, token_cost, 1 if is_public else 0))
         self.commit()
-        # lastrowid works for both
         return self.cursor.lastrowid
 
     def delete(self, banner_id, user_id):

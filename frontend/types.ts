@@ -83,4 +83,15 @@ export interface BannerHistoryItem {
   created_at: string;
   reference_images?: string;
   reference_images_list?: ReferenceImage[];
+  is_public?: boolean;
+}
+
+export interface PublicBannerItem {
+  id: number;
+  image_url: string;
+  request_description: string;
+  aspect_ratio: string;
+  created_at: string;
+  full_name: string;
+  avatar_url: string;
 }

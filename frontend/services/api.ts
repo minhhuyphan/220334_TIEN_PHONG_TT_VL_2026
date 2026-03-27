@@ -1,4 +1,4 @@
-import { User, AuthResponse, Package, CreatePaymentResponse, PaymentStatusResponse, PaymentHistoryItem, SeoSettings } from '../types';
+import { User, AuthResponse, Package, CreatePaymentResponse, PaymentStatusResponse, PaymentHistoryItem, SeoSettings, PublicBannerItem } from '../types';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem(__TOKEN_KEY__);
@@ -287,6 +287,21 @@ export const apiService = {
     });
     if (!response.ok) throw new Error('Failed to sync SEO settings');
     return response.json();
+  },
+
+  async getPublicBanners(limit = 20): Promise<PublicBannerItem[]> {
+    const response = await fetch(`${__API_URL__}/generate/public-banners?limit=${limit}`);
+    if (!response.ok) return [];
+    return response.json();
+  },
+
+  async toggleBannerPublic(bannerId: number, isPublic: boolean): Promise<void> {
+    const response = await fetch(`${__API_URL__}/generate/history/${bannerId}/public`, {
+      method: 'PATCH',
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_public: isPublic })
+    });
+    if (!response.ok) throw new Error('Failed to toggle banner public status');
   },
 
   async uploadFile(file: File): Promise<{ filename: string; url: string }> {

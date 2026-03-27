@@ -131,6 +131,36 @@ async def generate_banner(
         traceback.print_exc()
         return None
 
+@router.get("/public-banners")
+async def get_public_banners(
+    request: Request,
+    limit: int = 20,
+    banner_history: BannerHistoryManager = Depends(get_banner_history_manager)
+):
+    """
+    Lấy danh sách banner public — không yêu cầu xác thực.
+    Dùng để hiển thị gallery trên trang chủ.
+    """
+    banners = banner_history.get_public_banners(limit=min(limit, 50))
+    for b in banners:
+        b['image_url'] = fix_banner_url(b['image_url'], request)
+    return banners
+
+@router.patch("/history/{banner_id}/public")
+async def toggle_banner_public(
+    banner_id: int,
+    is_public: bool = Body(..., embed=True),
+    current_user: dict = Depends(get_current_user),
+    banner_history: BannerHistoryManager = Depends(get_banner_history_manager)
+):
+    """
+    Toggle trạng thái public/private của một banner.
+    """
+    count = banner_history.set_public(banner_id, current_user['id'], is_public)
+    if count == 0:
+        raise HTTPException(status_code=404, detail="Banner không tìm thấy hoặc không có quyền")
+    return {"message": "Cập nhật thành công", "is_public": is_public}
+
 @router.get("/view/{file_id}")
 async def view_banner(file_id: str, download: bool = False):
     """

@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
 
   // Cấu hình tập trung tại đây
-  const API_URL = env.VITE_API_URL || "http://localhost:55002/api/v1";
+  const API_URL = env.VITE_API_URL || "http://localhost:8000/api/v1";
   const GOOGLE_CLIENT_ID = env.VITE_GOOGLE_CLIENT_ID ||
     "567833204408-2bf86chhmiaj410h6fj18vpkdcn9cjce.apps.googleusercontent.com"; // Đồng bộ từ .env
 
@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
       host: "0.0.0.0",
       proxy: {
         '/api': {
-          target: 'http://localhost:55002',
+          target: 'http://localhost:8000',
           changeOrigin: true,
         }
       }

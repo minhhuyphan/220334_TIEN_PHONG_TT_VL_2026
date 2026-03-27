@@ -117,6 +117,7 @@ def init_db():
         image_url {text_type},
         reference_images {text_type},
         token_cost REAL DEFAULT 1,
+        is_public {bool_type} DEFAULT 1,
         created_at DATETIME DEFAULT {ts_default}
     )
     ''')
@@ -161,9 +162,42 @@ def init_db():
     print(f"✅ Database initialized ({db_type.upper()}). Persistence is now active.")
 
 def check_and_migrate_db():
-    # Simplification: For now, if MySQL, just ensure tables exist. 
-    # Migration is complex across different DBs.
+    """Kiểm tra và migrate DB an toàn — thêm cột mới nếu chưa tồn tại."""
     init_db()
+    
+    conn = get_db_connection()
+    db_type = getattr(settings, "DB_TYPE", "sqlite").lower()
+    cursor = conn.cursor(dictionary=True) if db_type == "mysql" else conn.cursor()
+    
+    try:
+        # Migration: Thêm cột is_public vào banner_history nếu chưa có
+        if db_type == "mysql":
+            cursor.execute("""
+                SELECT COUNT(*) as cnt FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'banner_history'
+                  AND COLUMN_NAME = 'is_public'
+            """)
+            row = cursor.fetchone()
+            col_exists = (row['cnt'] if isinstance(row, dict) else row[0]) > 0
+        else:
+            cursor.execute("PRAGMA table_info(banner_history)")
+            cols = [r[1] for r in cursor.fetchall()]
+            col_exists = 'is_public' in cols
+        
+        if not col_exists:
+            cursor.execute("ALTER TABLE banner_history ADD COLUMN is_public BOOLEAN DEFAULT 1")
+            # Đặt tất cả banner cũ là public
+            cursor.execute("UPDATE banner_history SET is_public = 1 WHERE is_public IS NULL")
+            if db_type != "mysql":
+                conn.commit()
+            print("✅ Migration: Đã thêm cột 'is_public' vào banner_history")
+        else:
+            print("✅ Migration: Cột 'is_public' đã tồn tại")
+    except Exception as e:
+        print(f"⚠️ Migration warning: {e}")
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     check_and_migrate_db()
