@@ -449,7 +449,8 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
               <textarea 
                 value={prompt}
                 onChange={handlePromptChange}
-                placeholder="Bạn muốn tạo gì? Hãy mô tả chi tiết... (Gõ @ để tham chiếu ảnh đã tải)"
+                maxLength={1000}
+                placeholder='Mô tả banner bạn muốn tạo... Dùng dấu " " để viết chữ lên ảnh, ví dụ: "SALE 50%" màu đỏ to ở giữa. (Gõ @ để tham chiếu ảnh đã tải)'
                 className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 resize-none text-slate-700"
               />
               
@@ -477,8 +478,10 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
                 </div>
               )}
 
-              <div className="absolute bottom-4 right-4 text-xs text-slate-400">
-                {prompt.length}/500
+              <div className={`absolute bottom-4 right-4 text-xs font-medium ${
+                prompt.length > 900 ? 'text-red-400' : prompt.length > 700 ? 'text-amber-400' : 'text-slate-400'
+              }`}>
+                {prompt.length}/1000
               </div>
             </div>
 

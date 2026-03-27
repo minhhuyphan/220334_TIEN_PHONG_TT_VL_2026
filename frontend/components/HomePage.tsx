@@ -17,6 +17,7 @@ const TXT2 = '#6b7280';    // text muted
 
 const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
   const [banners, setBanners] = useState<PublicBannerItem[]>([]);
+  const [heroBanners, setHeroBanners] = useState<PublicBannerItem[]>([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -39,17 +40,44 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
     apiService.getPublicBanners(20).then(data => {
       setBanners(data);
       setLoadingBanners(false);
+      // Lọc ảnh landscape (tỉ lệ >= 1.5) cho hero slideshow
+      const landscapeItems: PublicBannerItem[] = [];
+      let checked = 0;
+      if (data.length === 0) return;
+      data.forEach(item => {
+        const img = new Image();
+        img.onload = () => {
+          if (img.naturalWidth / img.naturalHeight >= 1.5) {
+            landscapeItems.push(item);
+          }
+          checked++;
+          if (checked === data.length) {
+            // Giữ thứ tự gốc
+            const ordered = data.filter(b => landscapeItems.find(l => l.id === b.id));
+            setHeroBanners(ordered.length > 0 ? ordered : data);
+          }
+        };
+        img.onerror = () => {
+          checked++;
+          if (checked === data.length) {
+            const ordered = data.filter(b => landscapeItems.find(l => l.id === b.id));
+            setHeroBanners(ordered.length > 0 ? ordered : data);
+          }
+        };
+        img.src = item.image_url;
+      });
     });
   }, []);
 
-  // Slideshow hero — CSS crossfade, chỉ đổi index mỗi 3 giây
+  // Slideshow hero — CSS crossfade, chỉ đổi index mỗi 3 giây (chỉ dùng heroBanners)
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (heroBanners.length <= 1) return;
+    setCurrentIndex(0);
     const timer = setInterval(() => {
-      setCurrentIndex(i => (i + 1) % banners.length);
+      setCurrentIndex(i => (i + 1) % heroBanners.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, [banners.length]);
+  }, [heroBanners.length]);
 
   useEffect(() => {
     if (!showLoginModal) return;
@@ -136,8 +164,8 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
 
       {/* HERO — full screen, ảnh thư viện đổi mỗi 2s */}
       <section style={{ height: '100vh', position: 'relative', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
-        {/* Stack tất cả ảnh — CSS transition tự crossfade mượt mà */}
-        {banners.length > 0 ? banners.map((b, i) => (
+        {/* Stack chỉ ảnh landscape — CSS transition tự crossfade mượt mà */}
+        {heroBanners.length > 0 ? heroBanners.map((b, i) => (
           <img
             key={b.id}
             src={b.image_url}
@@ -403,10 +431,10 @@ const GalleryCard: React.FC<{ banner: PublicBannerItem; index: number }> = ({ ba
       position: 'relative', cursor: 'pointer', transition: 'all 0.3s',
       animationDelay: `${index * 40}ms`,
     }}>
-      {!loaded && <div style={{ width: '100%', height: '200px', background: '#f5f3ff' }} />}
+      {!loaded && <div style={{ width: '100%', height: '240px', background: '#f5f3ff', animation: 'pulse 1.5s infinite' }} />}
       <img
         src={banner.image_url} alt={banner.request_description || 'Banner'}
-        style={{ width: '100%', objectFit: 'cover', display: loaded ? 'block' : 'none' }}
+        style={{ width: '100%', maxHeight: '420px', objectFit: 'cover', display: loaded ? 'block' : 'none' }}
         onLoad={() => setLoaded(true)} onError={() => setError(true)}
       />
       {/* Hover overlay */}
