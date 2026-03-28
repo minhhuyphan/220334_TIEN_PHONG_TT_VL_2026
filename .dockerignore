@@ -1,0 +1,33 @@
+.git
+.gitignore
+.dockerignore
+.env
+.venv
+__pycache__
+*.pyc
+node_modules
+
+# Non-backend directories
+laravel_app/
+frontend/
+mysql_data/
+assets/
+counter_app/
+
+# Local DB and generated files
+banner_ai.db
+uploads/
+banners/
+utils/download/
+test_*.png
+models_utf8.txt
+all_models.txt
+*.log
+
+# Debug and unused scripts
+tmp_*.py
+test_*.py
+check_settings.py
+mac_address.py
+sync_to_cloudinary.py
+update_db_cloudinary.py
