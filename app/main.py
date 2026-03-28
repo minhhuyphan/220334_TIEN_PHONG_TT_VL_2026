@@ -56,6 +56,27 @@ from app.utils.database import check_and_migrate_db
 @app.on_event("startup")
 async def startup_event():
     check_and_migrate_db() # Kiểm tra và update DB schema nếu thiếu
+    
+    # Reset các task bị kẹt từ lần chạy trước (pending/processing trong DB nhưng không có trong RAM)
+    # Nếu không reset, frontend sẽ poll vô tận sau khi server restart
+    try:
+        from app.models.banner_db import TasksManager
+        tm = TasksManager()
+        conn = tm.conn
+        cursor = tm.cursor
+        stuck_statuses = ('pending', 'processing')
+        p = tm.p
+        for status in stuck_statuses:
+            cursor.execute(
+                f"UPDATE tasks SET status = {p}, error_message = {p}, updated_at = CURRENT_TIMESTAMP WHERE status = {p}",
+                ('failed', 'Server restarted. Please try again.', status)
+            )
+        conn.commit()
+        print("✅ Startup: Reset stuck tasks to 'failed'")
+        tm.close()
+    except Exception as e:
+        print(f"⚠️ Startup cleanup warning: {e}")
+    
     await ram_task_manager.start_worker()
 
 @app.get("/")

@@ -39,6 +39,16 @@ class TaskManagerRAM:
             try:
                 task_info = self.active_tasks.get(task_id)
                 if not task_info:
+                    # Task not found in RAM (e.g. after server restart)
+                    # Mark as failed in DB so frontend stops polling
+                    print(f"⚠️ Task {task_id} not found in RAM, marking as failed in DB")
+                    try:
+                        from app.models.banner_db import TasksManager
+                        tm = TasksManager()
+                        tm.update_task(task_id, "failed", error_message="Task lost after server restart. Please try again.")
+                        tm.close()
+                    except Exception as db_err:
+                        print(f"Could not update orphaned task in DB: {db_err}")
                     continue
                 
                 task_info["status"] = "processing"
@@ -46,12 +56,19 @@ class TaskManagerRAM:
                 await task_info["process_func"](task_id, task_info["user_id"], task_info["request_data"])
                 
             except Exception as e:
+                import traceback
                 print(f"❌ Error in RAM worker for task {task_id}: {e}")
+                traceback.print_exc()
+                # CRITICAL: Update DB to 'failed' so frontend stops polling!
+                try:
+                    from app.models.banner_db import TasksManager
+                    tm = TasksManager()
+                    tm.update_task(task_id, "failed", error_message=f"Worker error: {str(e)}")
+                    tm.close()
+                except Exception as db_err:
+                    print(f"Could not update failed task in DB: {db_err}")
             finally:
                 if task_id in self.active_tasks:
-                    # Keep for a while or remove? 
-                    # User said "lưu vào ram", maybe they want to query recent tasks from RAM?
-                    # For now, let's keep it until it's finished and then maybe remove after some time.
                     del self.active_tasks[task_id]
                 self.queue.task_done()
 

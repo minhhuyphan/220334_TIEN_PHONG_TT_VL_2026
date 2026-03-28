@@ -125,9 +125,23 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
   // Polling effect
   useEffect(() => {
     let intervalId: any;
+    let pollCount = 0;
+    const MAX_POLLS = 150; // 150 × 2s = 5 phút timeout
 
     if (currentTaskId) {
       intervalId = setInterval(async () => {
+        pollCount++;
+
+        // Timeout sau 5 phút
+        if (pollCount > MAX_POLLS) {
+          clearInterval(intervalId);
+          setError('Yêu cầu tạo banner đã quá thời gian chờ (5 phút). Vui lòng thử lại.');
+          setIsLoading(false);
+          setCurrentTaskId(null);
+          localStorage.removeItem('current_banner_task_id');
+          return;
+        }
+
         try {
           const task = await apiService.getTaskStatus(currentTaskId);
           
