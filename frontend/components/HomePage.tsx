@@ -6,6 +6,8 @@ declare const __GOOGLE_CLIENT_ID__: string;
 
 interface HomePageProps {
   onLoginSuccess: (user: User, token: string) => void;
+  user?: User | null;
+  onNavigate?: (route: string) => void;
 }
 
 const V = '#7C3AED';       // violet-700 — màu chính
@@ -15,7 +17,73 @@ const BG2 = '#f5f3ff';     // tím nhạt cho section xen kẽ
 const TXT = '#1e1b4b';     // text tối (indigo-950)
 const TXT2 = '#6b7280';    // text muted
 
-const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
+const defaultHomeConfig = {
+  hero: {
+    visible: true,
+    title: "Biến cảm hứng thành nghệ thuật trên Zephyr",
+    title_color: "#ffffff",
+    subtitle: "[ CÔNG NGHỆ KỸ THUẬT AI TIÊN TIẾN ]",
+    subtitle_color: "#e2e8f0",
+    btn_primary: "Tạo banner ngay",
+    btn_primary_color: "#ffffff",
+    btn_secondary: "Xem Gallery ↓",
+    btn_secondary_color: "#ffffff"
+  },
+  features: {
+    visible: true,
+    subtitle: "TÍNH NĂNG NỔI BẬT",
+    subtitle_color: "#7C3AED",
+    title: "Hiện thực hóa tác phẩm trong mơ của bạn bằng AI",
+    title_color: "#1e1b4b",
+    desc: "Nền tảng công nghệ kỹ thuật tiên phong hàng đầu dành cho doanh nghiệp Việt Nam",
+    desc_color: "#6b7280"
+  },
+  workflow: {
+    visible: true,
+    subtitle: "ĐƠN GIẢN",
+    subtitle_color: "#7C3AED",
+    title: "Chỉ 3 bước để có banner hoàn hảo",
+    title_color: "#1e1b4b",
+    desc: "Từ ý tưởng đến banner chuyên nghiệp — nhanh chóng, không cần kỹ năng thiết kế.",
+    desc_color: "#6b7280"
+  },
+  gallery: {
+    visible: true,
+    subtitle: "CỘNG ĐỒNG SÁNG TẠO",
+    subtitle_color: "#7C3AED",
+    title: "Tìm cảm hứng của bạn trong vô vàn ý tưởng sáng tạo",
+    title_color: "#1e1b4b",
+    desc: "Khám phá những banner được tạo bởi cộng đồng người dùng Zephyr.",
+    desc_color: "#6b7280"
+  },
+  about: {
+    visible: true,
+    subtitle: "VỀ CHÚNG TÔI",
+    subtitle_color: "#e2e8f0",
+    title: "Zephyr, bộ công cụ công nghệ AI toàn diện",
+    title_color: "#ffffff",
+    desc: "CÔNG TY TNHH MỘT THÀNH VIÊN CÔNG NGHỆ KỸ THUẬT TIÊN PHONG — chuyên cung cấp giải pháp công nghệ kỹ thuật cao và xuất nhập khẩu các mặt hàng công nghệ tiên tiến.",
+    desc_color: "#e2e8f0",
+    company_info: "MST: 1801526082 · Người đại diện: NGÔ HỒ ANH KHÔI\nP16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ\n0916 416 409 · Hoạt động từ 05/04/2017",
+    company_info_color: "#9ca3af"
+  }
+};
+
+const renderDynamic = (
+  value: any, 
+  defaultColor: string, 
+  renderFn: (text: string, color: string, index: number) => React.ReactNode
+) => {
+  const items = Array.isArray(value) ? value : [{ id: 'default', text: value, color: value?.color || defaultColor }];
+  return items.map((item, index) => {
+    if (!item.text && item.text !== 0) return null; // hide if empty
+    return <React.Fragment key={item.id}>{renderFn(String(item.text), item.color || defaultColor, index)}</React.Fragment>;
+  });
+};
+
+const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate }) => {
+  const [config, setConfig] = useState<any>(defaultHomeConfig);
+  const [publicPages, setPublicPages] = useState<any[]>([]);
   const [banners, setBanners] = useState<PublicBannerItem[]>([]);
   const [heroBanners, setHeroBanners] = useState<PublicBannerItem[]>([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
@@ -37,6 +105,18 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
   }, []);
 
   useEffect(() => {
+    fetch(`${__API_URL__}/config/homepage`)
+      .then(res => res.json())
+      .then(data => {
+         if (Object.keys(data).length > 0) setConfig({ ...defaultHomeConfig, ...data });
+      })
+      .catch((e) => console.log('Không tải được config trang chủ', e));
+
+    fetch(`${__API_URL__}/pages`)
+      .then(res => res.json())
+      .then(data => setPublicPages(Array.isArray(data) ? data : []))
+      .catch(e => console.error("Fetch pages error:", e));
+
     apiService.getPublicBanners(20).then(data => {
       setBanners(data);
       setLoadingBanners(false);
@@ -151,18 +231,27 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
           ))}
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button id="navbar-login-btn" onClick={() => setShowLoginModal(true)}
-            style={{ color: TXT2, fontSize: '14px', fontWeight: 500, background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px 14px', borderRadius: '24px', transition: 'all 0.2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = V; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = TXT2; }}
-          >Đăng nhập</button>
-          <button className="btn-violet" onClick={() => setShowLoginModal(true)}
-            style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '14px', padding: '9px 22px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 18px rgba(124,58,237,0.35)' }}
-          >Tạo ngay</button>
+          {user ? (
+            <button className="btn-violet" onClick={() => onNavigate && onNavigate('/dashboard')}
+              style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '14px', padding: '9px 22px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 18px rgba(124,58,237,0.35)' }}
+            >Bảng điều khiển</button>
+          ) : (
+            <>
+              <button id="navbar-login-btn" onClick={() => setShowLoginModal(true)}
+                style={{ color: TXT2, fontSize: '14px', fontWeight: 500, background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px 14px', borderRadius: '24px', transition: 'all 0.2s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = V; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = TXT2; }}
+              >Đăng nhập</button>
+              <button className="btn-violet" onClick={() => setShowLoginModal(true)}
+                style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '14px', padding: '9px 22px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 18px rgba(124,58,237,0.35)' }}
+              >Tạo ngay</button>
+            </>
+          )}
         </div>
       </nav>
 
       {/* HERO — full screen, ảnh thư viện đổi mỗi 2s */}
+      {config.hero.visible && (
       <section style={{ height: '100vh', position: 'relative', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
         {/* Stack chỉ ảnh landscape — CSS transition tự crossfade mượt mà */}
         {heroBanners.length > 0 ? heroBanners.map((b, i) => (
@@ -188,20 +277,28 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
         <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: 'linear-gradient(to top, rgba(15,10,30,1) 0%, rgba(15,10,30,0.4) 40%, transparent 70%)' }} />
 
         <div style={{ position: 'relative', zIndex: 10, padding: '0 64px 80px', maxWidth: '750px', animation: 'fadeUp 1s ease both' }}>
-          <span style={{ display: 'inline-block', marginBottom: '22px', fontSize: '11px', letterSpacing: '3px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', border: '1px solid rgba(255,255,255,0.2)', padding: '5px 16px', borderRadius: '20px', background: 'rgba(124,58,237,0.15)' }}>
-            [ Công nghệ kỹ thuật AI tiên tiến ]
-          </span>
-          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(40px, 5.5vw, 78px)', fontWeight: 700, lineHeight: 1.1, marginBottom: '30px', color: '#fff' }}>
-            Biến cảm hứng<br />thành nghệ thuật<br />
-            <span style={{ background: 'linear-gradient(135deg,#a78bfa,#7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>trên Zephyr →</span>
-          </h1>
+          {renderDynamic(config.hero.subtitle, 'rgba(255,255,255,0.6)', (text, color) => (
+            <span style={{ display: 'inline-block', marginBottom: '22px', fontSize: '11px', letterSpacing: '3px', color: color, textTransform: 'uppercase', border: '1px solid rgba(255,255,255,0.2)', padding: '5px 16px', borderRadius: '20px', background: 'rgba(124,58,237,0.15)' }}>
+              {text}
+            </span>
+          ))}
+          {renderDynamic(config.hero.title, '#fff', (text, color) => (
+            <h1 
+              style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(40px, 5.5vw, 78px)', fontWeight: 700, lineHeight: 1.1, marginBottom: '30px', color: color }}
+              dangerouslySetInnerHTML={{ __html: text.replace('Zephyr', `<span style="background: linear-gradient(135deg,#a78bfa,#7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Zephyr</span>`).replace(/\n/g, '<br />') }}
+            />
+          ))}
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-            <button id="hero-cta-btn" className="btn-violet" onClick={() => setShowLoginModal(true)}
-              style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '16px', padding: '14px 34px', borderRadius: '32px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(124,58,237,0.5)', transition: 'all 0.3s' }}
-            >✦ Bắt đầu miễn phí</button>
-            <a href="#gallery" id="hero-gallery-btn" className="btn-ghost"
-              style={{ color: 'rgba(255,255,255,0.75)', fontSize: '15px', textDecoration: 'none', padding: '14px 26px', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.25)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', backdropFilter: 'blur(8px)', background: 'rgba(255,255,255,0.08)' }}
-            >Xem Gallery ↓</a>
+            {renderDynamic(config.hero.btn_primary, '#fff', (text, color) => (
+              <button className="btn-violet" onClick={() => user ? (onNavigate && onNavigate('/generate')) : setShowLoginModal(true)}
+                style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: color, fontWeight: 700, fontSize: '16px', padding: '14px 34px', borderRadius: '32px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(124,58,237,0.5)', transition: 'all 0.3s' }}
+              >✦ {text}</button>
+            ))}
+            {renderDynamic(config.hero.btn_secondary, 'rgba(255,255,255,0.75)', (text, color) => (
+              <a href="#gallery" className="btn-ghost"
+                style={{ color: color, fontSize: '15px', textDecoration: 'none', padding: '14px 26px', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.25)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', backdropFilter: 'blur(8px)', background: 'rgba(255,255,255,0.08)' }}
+              >{text}</a>
+            ))}
           </div>
         </div>
         <div style={{ position: 'absolute', bottom: '28px', right: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.4)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', animation: 'bounce 2.5s infinite' }}>
@@ -209,17 +306,22 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </section>
+      )}
 
       {/* FEATURES */}
+      {config.features.visible && (
       <section id="features" style={{ padding: '120px 64px', background: BG }}>
         <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '72px' }}>
-            <span style={{ fontSize: '12px', letterSpacing: '3px', color: V, textTransform: 'uppercase', display: 'block', marginBottom: '16px', fontWeight: 600 }}>✦ Tính năng nổi bật</span>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(30px, 4vw, 52px)', fontWeight: 700, color: TXT, lineHeight: 1.2, marginBottom: '14px' }}>
-              Hiện thực hóa tác phẩm trong mơ<br />
-              <span style={{ background: `linear-gradient(135deg,${VL},${V})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>của bạn bằng AI</span>
-            </h2>
-            <p style={{ color: TXT2, fontSize: '16px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.7 }}>Nền tảng công nghệ kỹ thuật tiên phong hàng đầu dành cho doanh nghiệp Việt Nam</p>
+            {renderDynamic(config.features.subtitle, V, (text, color) => (
+              <span style={{ fontSize: '12px', letterSpacing: '3px', color: color, textTransform: 'uppercase', display: 'block', marginBottom: '16px', fontWeight: 600 }}>✦ {text}</span>
+            ))}
+            {renderDynamic(config.features.title, TXT, (text, color) => (
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(30px, 4vw, 52px)', fontWeight: 700, color: color, lineHeight: 1.2, marginBottom: '14px' }} dangerouslySetInnerHTML={{ __html: text.replace('bằng AI', `<span style="background: linear-gradient(135deg,${VL},${V}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">bằng AI</span>`) }} />
+            ))}
+            {renderDynamic(config.features.desc, TXT2, (text, color) => (
+              <p style={{ color: color, fontSize: '16px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.7 }}>{text}</p>
+            ))}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '20px' }}>
             {features.map((f, i) => (
@@ -233,8 +335,10 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
           </div>
         </div>
       </section>
+      )}
 
       {/* HOW IT WORKS */}
+      {config.workflow.visible && (
       <section style={{ padding: '100px 64px', background: BG2 }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '80px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1', minWidth: '290px' }}>
@@ -256,28 +360,45 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
             </div>
           </div>
           <div style={{ flex: '1', minWidth: '290px' }}>
-            <span style={{ fontSize: '12px', letterSpacing: '3px', color: V, textTransform: 'uppercase', display: 'block', marginBottom: '20px', fontWeight: 600 }}>✦ Đơn giản</span>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(28px,3.5vw,46px)', fontWeight: 700, color: TXT, lineHeight: 1.2, marginBottom: '18px' }}>
-              Chỉ <span style={{ color: V }}>3 bước</span> để<br />có banner hoàn hảo
-            </h2>
-            <p style={{ color: TXT2, fontSize: '16px', lineHeight: 1.8, marginBottom: '34px' }}>Từ ý tưởng đến banner chuyên nghiệp — nhanh chóng, không cần kỹ năng thiết kế.</p>
-            <button className="btn-ghost" onClick={() => setShowLoginModal(true)}
-              style={{ background: 'transparent', color: V, fontWeight: 600, fontSize: '15px', padding: '13px 28px', borderRadius: '28px', border: `1.5px solid ${V}`, cursor: 'pointer', transition: 'all 0.2s' }}
-            >✦ Dùng thử ngay →</button>
+            {renderDynamic(config.workflow.subtitle, V, (text, color) => (
+              <span style={{ fontSize: '12px', letterSpacing: '3px', color: color, textTransform: 'uppercase', display: 'block', marginBottom: '20px', fontWeight: 600 }}>✦ {text}</span>
+            ))}
+            {renderDynamic(config.workflow.title, TXT, (text, color) => (
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(28px,3.5vw,46px)', fontWeight: 700, color: color, lineHeight: 1.2, marginBottom: '18px' }} dangerouslySetInnerHTML={{ __html: text.replace('3 bước', `<span style="color: ${V}">3 bước</span>`) }} />
+            ))}
+            {renderDynamic(config.workflow.desc, TXT2, (text, color) => (
+              <p style={{ color: color, fontSize: '16px', lineHeight: 1.8, marginBottom: '34px' }}>{text}</p>
+            ))}
+            {user ? (
+              <button className="btn-ghost" onClick={() => onNavigate && onNavigate('/generate')}
+                style={{ background: 'transparent', color: V, fontWeight: 600, fontSize: '15px', padding: '13px 28px', borderRadius: '28px', border: `1.5px solid ${V}`, cursor: 'pointer', transition: 'all 0.2s' }}
+              >✦ Thử công cụ ngay →</button>
+            ) : (
+              <button className="btn-ghost" onClick={() => setShowLoginModal(true)}
+                style={{ background: 'transparent', color: V, fontWeight: 600, fontSize: '15px', padding: '13px 28px', borderRadius: '28px', border: `1.5px solid ${V}`, cursor: 'pointer', transition: 'all 0.2s' }}
+              >✦ Dùng thử miễn phí →</button>
+            )}
           </div>
         </div>
       </section>
+      )}
 
       {/* GALLERY */}
+      {config.gallery.visible && (
       <section id="gallery" style={{ padding: '120px 64px', background: BG }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-            <span style={{ fontSize: '12px', letterSpacing: '3px', color: V, textTransform: 'uppercase', display: 'block', marginBottom: '16px', fontWeight: 600 }}>✦ Cộng đồng sáng tạo</span>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(28px,4vw,52px)', fontWeight: 700, color: TXT, marginBottom: '14px' }}>
-              Tìm cảm hứng của bạn<br />
-              <span style={{ color: TXT2, fontWeight: 400, fontStyle: 'italic' }}>trong vô vàn ý tưởng sáng tạo</span>
-            </h2>
-            <p style={{ color: TXT2, maxWidth: '440px', margin: '0 auto', lineHeight: 1.7 }}>Khám phá những banner được tạo bởi cộng đồng người dùng Zephyr.</p>
+            {renderDynamic(config.gallery.subtitle, V, (text, color) => (
+              <span style={{ fontSize: '12px', letterSpacing: '3px', color: color, textTransform: 'uppercase', display: 'block', marginBottom: '16px', fontWeight: 600 }}>✦ {text}</span>
+            ))}
+            {renderDynamic(config.gallery.title, TXT, (text, color) => (
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(28px,4vw,52px)', fontWeight: 700, color: color, marginBottom: '14px' }}>
+                {text}
+              </h2>
+            ))}
+            {renderDynamic(config.gallery.desc, TXT2, (text, color) => (
+              <p style={{ color: color, maxWidth: '440px', margin: '0 auto', lineHeight: 1.7 }}>{text}</p>
+            ))}
           </div>
           {loadingBanners ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
@@ -288,9 +409,15 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
               <div style={{ fontSize: '52px', marginBottom: '16px' }}>🎨</div>
               <p style={{ color: TXT2, fontSize: '18px', marginBottom: '8px' }}>Chưa có banner nào</p>
               <p style={{ color: TXT2, fontSize: '14px', marginBottom: '28px', opacity: 0.7 }}>Hãy là người đầu tiên tạo và chia sẻ banner!</p>
-              <button className="btn-violet" onClick={() => setShowLoginModal(true)}
-                style={{ background: `linear-gradient(135deg,${V},#6D28D9)`, color: '#fff', fontWeight: 700, padding: '12px 28px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}
-              >✦ Tạo banner ngay</button>
+              {user ? (
+                <button className="btn-violet" onClick={() => onNavigate && onNavigate('/generate')}
+                  style={{ background: `linear-gradient(135deg,${V},#6D28D9)`, color: '#fff', fontWeight: 700, padding: '12px 28px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}
+                >✦ Tạo banner ngay</button>
+              ) : (
+                <button className="btn-violet" onClick={() => setShowLoginModal(true)}
+                  style={{ background: `linear-gradient(135deg,${V},#6D28D9)`, color: '#fff', fontWeight: 700, padding: '12px 28px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}
+                >✦ Đăng nhập & Tạo ảnh</button>
+              )}
             </div>
           ) : (
             <div className="gallery-cols">
@@ -298,69 +425,95 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess }) => {
             </div>
           )}
           <div style={{ textAlign: 'center', marginTop: '48px' }}>
-            <button className="btn-ghost" onClick={() => setShowLoginModal(true)}
-              style={{ background: 'transparent', color: V, fontWeight: 600, fontSize: '15px', padding: '13px 32px', borderRadius: '32px', border: `1.5px solid ${V}`, cursor: 'pointer', transition: 'all 0.2s' }}
-            >✦ Tìm cảm hứng →</button>
+            {user ? (
+              <button className="btn-ghost" onClick={() => onNavigate && onNavigate('/generate')}
+                style={{ background: 'transparent', color: V, fontWeight: 600, fontSize: '15px', padding: '13px 32px', borderRadius: '32px', border: `1.5px solid ${V}`, cursor: 'pointer', transition: 'all 0.2s' }}
+              >✦ Thoả mãn đam mê sáng tạo →</button>
+            ) : (
+              <button className="btn-ghost" onClick={() => setShowLoginModal(true)}
+                style={{ background: 'transparent', color: V, fontWeight: 600, fontSize: '15px', padding: '13px 32px', borderRadius: '32px', border: `1.5px solid ${V}`, cursor: 'pointer', transition: 'all 0.2s' }}
+              >✦ Tham gia cùng chúng tôi →</button>
+            )}
           </div>
         </div>
       </section>
+      )}
 
       {/* ABOUT / CTA */}
+      {config.about.visible && (
       <section id="about" style={{ padding: '120px 64px', background: `linear-gradient(135deg, ${V} 0%, #6D28D9 50%, #4C1D95 100%)`, textAlign: 'center' }}>
         <div style={{ maxWidth: '780px', margin: '0 auto' }}>
-          <span style={{ fontSize: '12px', letterSpacing: '3px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', display: 'block', marginBottom: '20px', fontWeight: 600 }}>✦ Về chúng tôi</span>
-          <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(28px,4vw,54px)', fontWeight: 700, color: '#fff', marginBottom: '24px', lineHeight: 1.2 }}>
-            Zephyr, bộ công cụ<br />
-            <span style={{ color: '#c4b5fd' }}>công nghệ AI toàn diện</span>
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', lineHeight: 1.85, marginBottom: '16px' }}>
-            CÔNG TY TNHH MỘT THÀNH VIÊN CÔNG NGHỆ KỸ THUẬT TIÊN PHONG — chuyên cung cấp giải pháp công nghệ kỹ thuật cao và xuất nhập khẩu các mặt hàng công nghệ tiên tiến.
-          </p>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', marginBottom: '6px' }}>MST: 1801526082 · Người đại diện: NGÔ HỒ ANH KHÔI</p>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', marginBottom: '6px' }}>📍 P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ</p>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', marginBottom: '48px' }}>📞 0916 416 409 · Hoạt động từ 05/04/2017</p>
-          <button id="about-cta-btn" className="btn-violet" onClick={() => setShowLoginModal(true)}
-            style={{ background: '#fff', color: V, fontWeight: 700, fontSize: '17px', padding: '16px 46px', borderRadius: '36px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', transition: 'all 0.3s' }}
-          >✦ Bắt đầu ngay</button>
+          {renderDynamic(config.about.subtitle, 'rgba(255,255,255,0.7)', (text, color) => (
+            <span style={{ fontSize: '12px', letterSpacing: '3px', color: color, textTransform: 'uppercase', display: 'block', marginBottom: '20px', fontWeight: 600 }}>✦ {text}</span>
+          ))}
+          {renderDynamic(config.about.title, '#fff', (text, color) => (
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(28px,4vw,54px)', fontWeight: 700, color: color, marginBottom: '24px', lineHeight: 1.2 }}>
+              <span dangerouslySetInnerHTML={{ __html: text }} />
+            </h2>
+          ))}
+          {renderDynamic(config.about.desc, 'rgba(255,255,255,0.8)', (text, color) => (
+            <p style={{ color: color, fontSize: '16px', lineHeight: 1.85, marginBottom: '16px' }}>
+              {text}
+            </p>
+          ))}
+          {renderDynamic(config.about.company_info, 'rgba(255,255,255,0.55)', (text, color, idx) => (
+            <React.Fragment>
+              {text.split('\n').map((line, i, arr) => (
+                <p key={`${idx}-${i}`} style={{ color: color, fontSize: '14px', marginBottom: i === (arr.length - 1) ? '48px' : '6px' }}>{line}</p>
+              ))}
+            </React.Fragment>
+          ))}
+          {user ? (
+            <button id="about-cta-btn" className="btn-violet" onClick={() => onNavigate && onNavigate('/dashboard')}
+              style={{ background: '#fff', color: V, fontWeight: 700, fontSize: '17px', padding: '16px 46px', borderRadius: '36px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', transition: 'all 0.3s' }}
+            >✦ Bảng điều khiển</button>
+          ) : (
+            <button id="about-cta-btn" className="btn-violet" onClick={() => setShowLoginModal(true)}
+              style={{ background: '#fff', color: V, fontWeight: 700, fontSize: '17px', padding: '16px 46px', borderRadius: '36px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', transition: 'all 0.3s' }}
+            >✦ Bắt đầu ngay</button>
+          )}
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '13px', marginTop: '16px' }}>Không cần thẻ tín dụng · 5 token miễn phí khi đăng ký</p>
         </div>
       </section>
+      )}
 
       {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid rgba(124,58,237,0.1)', padding: '64px', background: BG }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '48px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <img src="/logo.png" alt="Zephyr" style={{ height: '28px', width: '28px', objectFit: 'contain' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              <span style={{ fontWeight: 700, color: V, fontSize: '18px' }}>Zephyr</span>
-            </div>
-            <p style={{ color: TXT2, fontSize: '13px', lineHeight: 1.75 }}>Công nghệ kỹ thuật tiên phong phục vụ doanh nghiệp Việt Nam</p>
+      <footer style={{ borderTop: '1px solid rgba(124,58,237,0.1)', padding: '32px 64px', background: BG }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+             <img src="/logo.png" alt="Zephyr" style={{ height: '24px', width: '24px', objectFit: 'contain' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+             <span style={{ fontWeight: 700, color: V, fontSize: '15px' }}>Zephyr</span>
+             <span style={{ color: TXT2, fontSize: '12px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(124,58,237,0.2)' }}>
+               © {new Date().getFullYear()} Công nghệ AI tiên phong
+             </span>
           </div>
-          {[
-            { title: 'Công cụ', items: ['Tạo banner AI', 'Tùy chỉnh kích thước', 'Ảnh tham chiếu', 'Quản lý lịch sử'] },
-            { title: 'Tài nguyên', items: ['Hướng dẫn sử dụng', 'Gallery cộng đồng', 'Xuất nhập khẩu', 'Hỗ trợ kỹ thuật'] },
-          ].map(col => (
-            <div key={col.title}>
-              <h4 style={{ color: TXT, fontSize: '12px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '16px' }}>{col.title}</h4>
-              {col.items.map(item => (
-                <p key={item} style={{ marginBottom: '10px' }}>
-                  <span className="footer-link" style={{ color: TXT2, fontSize: '14px', cursor: 'pointer', transition: 'color 0.2s' }}>{item}</span>
-                </p>
-              ))}
-            </div>
-          ))}
-          <div>
-            <h4 style={{ color: TXT, fontSize: '12px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '16px' }}>Liên hệ</h4>
-            <p style={{ color: TXT2, fontSize: '13px', lineHeight: 2 }}>📞 0916 416 409<br />📍 TP. Cần Thơ, Việt Nam<br />MST: 1801526082</p>
-          </div>
-        </div>
-        <div style={{ maxWidth: '1200px', margin: '48px auto 0', paddingTop: '24px', borderTop: '1px solid rgba(124,58,237,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <p style={{ color: TXT2, fontSize: '12px' }}>© {new Date().getFullYear()} CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG (Zephyr) · MST 1801526082</p>
           <div style={{ display: 'flex', gap: '20px' }}>
             {[['#features', 'Tính năng'], ['#gallery', 'Gallery']].map(([href, label]) => (
-              <a key={href} href={href} style={{ color: TXT2, fontSize: '12px', textDecoration: 'none' }}>{label}</a>
+              <a key={href} href={href} style={{ color: TXT2, fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = V; }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = TXT2; }}>{label}</a>
             ))}
-            <button onClick={() => setShowLoginModal(true)} style={{ color: V, fontSize: '12px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Đăng nhập</button>
+            {publicPages.map(page => (
+              <a 
+                key={page.slug} 
+                href={`/page/${page.slug}`}
+                onClick={(e) => { e.preventDefault(); onNavigate && onNavigate(`/page/${page.slug}`); }}
+                style={{ color: TXT2, fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s', cursor: 'pointer' }} 
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = V; }} 
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = TXT2; }}
+              >
+                {page.title}
+              </a>
+            ))}
+            {user ? (
+              <button 
+                onClick={() => onNavigate && onNavigate('/dashboard')} 
+                style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+              >Bảng điều khiển</button>
+            ) : (
+              <button 
+                onClick={() => setShowLoginModal(true)} 
+                style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+              >Đăng nhập</button>
+            )}
           </div>
         </div>
       </footer>

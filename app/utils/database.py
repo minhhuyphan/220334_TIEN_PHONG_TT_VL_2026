@@ -118,6 +118,7 @@ def init_db():
         reference_images {text_type},
         token_cost REAL DEFAULT 1,
         is_public {bool_type} DEFAULT 1,
+        is_hidden {bool_type} DEFAULT 0,
         created_at DATETIME DEFAULT {ts_default}
     )
     ''')
@@ -139,6 +140,18 @@ def init_db():
         result {text_type},
         request_data {text_type},
         error_message {text_type},
+        created_at DATETIME DEFAULT {ts_default},
+        updated_at DATETIME DEFAULT {ts_default}
+    )
+    ''')
+    
+    # Bảng Pages (for dynamic CMS pages)
+    cursor.execute(f'''
+    CREATE TABLE IF NOT EXISTS pages (
+        slug VARCHAR(255) PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        content {text_type},
+        is_published {bool_type} DEFAULT 1,
         created_at DATETIME DEFAULT {ts_default},
         updated_at DATETIME DEFAULT {ts_default}
     )
@@ -194,6 +207,30 @@ def check_and_migrate_db():
             print("✅ Migration: Đã thêm cột 'is_public' vào banner_history")
         else:
             print("✅ Migration: Cột 'is_public' đã tồn tại")
+
+        # Migration: Thêm cột is_hidden vào banner_history nếu chưa có
+        if db_type == "mysql":
+            cursor.execute("""
+                SELECT COUNT(*) as cnt FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'banner_history'
+                  AND COLUMN_NAME = 'is_hidden'
+            """)
+            row = cursor.fetchone()
+            hidden_col_exists = (row['cnt'] if isinstance(row, dict) else row[0]) > 0
+        else:
+            cursor.execute("PRAGMA table_info(banner_history)")
+            cols = [r[1] for r in cursor.fetchall()]
+            hidden_col_exists = 'is_hidden' in cols
+
+        if not hidden_col_exists:
+            cursor.execute("ALTER TABLE banner_history ADD COLUMN is_hidden BOOLEAN DEFAULT 0")
+            cursor.execute("UPDATE banner_history SET is_hidden = 0 WHERE is_hidden IS NULL")
+            if db_type != "mysql":
+                conn.commit()
+            print("✅ Migration: Đã thêm cột 'is_hidden' vào banner_history")
+        else:
+            print("✅ Migration: Cột 'is_hidden' đã tồn tại")
     except Exception as e:
         print(f"⚠️ Migration warning: {e}")
     finally:

@@ -92,23 +92,37 @@ async def generate_banner(
     model_id = model_id or settings.GOOGLE_LLM_IMAGE
     client = genai.Client(api_key=api_key)
     try:
-        image_config = types.ImageConfig(aspect_ratio=aspect_ratio)
-        
-        # Chạy block call trong thread để không block event loop
         def sync_generate():
-            return client.models.generate_content(
-                model=model_id,
-                contents=contents,
-                config=types.GenerateContentConfig(
-                    image_config=image_config,
-                    response_modalities=['IMAGE']
+            if 'imagen' in model_id.lower():
+                return client.models.generate_images(
+                    model=model_id,
+                    prompt=full_prompt,
+                    config=types.GenerateImagesConfig(
+                        number_of_images=1,
+                        output_mime_type="image/jpeg",
+                        aspect_ratio=aspect_ratio
+                    )
                 )
-            )
+            else:
+                image_config = types.ImageConfig(aspect_ratio=aspect_ratio)
+                return client.models.generate_content(
+                    model=model_id,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        image_config=image_config,
+                        response_modalities=['IMAGE']
+                    )
+                )
 
         response = await asyncio.to_thread(sync_generate)
 
         if not response:
             return None
+
+        # For Imagen Models (GenerateImagesResponse)
+        if hasattr(response, 'generated_images') and response.generated_images:
+            image_bytes = response.generated_images[0].image.image_bytes
+            return await asyncio.to_thread(Image.open, BytesIO(image_bytes))
 
         # New SDK structure (Gemini 3.1 / 2.x)
         if hasattr(response, 'candidates') and response.candidates:

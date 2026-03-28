@@ -69,12 +69,14 @@ class BannerHistoryManager(DBConnection):
         return row['count'] if row else 0
 
     def get_public_banners(self, limit=20):
-        """Lấy banner cho gallery trang chủ — hiển thị tất cả banner có ảnh hợp lệ."""
+        """Lấy banner cho gallery trang chủ — chỉ hiển thị banner is_public=1 và is_hidden=0."""
         sql = f"""SELECT bh.id, bh.image_url, bh.request_description, bh.aspect_ratio,
                          bh.created_at, u.full_name, u.avatar_url
                   FROM banner_history bh
                   LEFT JOIN users u ON bh.user_id = u.id
                   WHERE bh.image_url IS NOT NULL AND bh.image_url != ''
+                    AND bh.is_public = 1
+                    AND (bh.is_hidden IS NULL OR bh.is_hidden = 0)
                   ORDER BY bh.created_at DESC
                   LIMIT {self.p}"""
         self.cursor.execute(sql, (limit,))
@@ -86,6 +88,27 @@ class BannerHistoryManager(DBConnection):
         self.cursor.execute(sql, (1 if is_public else 0, banner_id, user_id))
         self.commit()
         return self.cursor.rowcount
+
+    def admin_set_hidden(self, banner_id, is_hidden: bool):
+        """Admin ẩn/hiện banner trên trang chủ (không xóa)."""
+        sql = f"UPDATE banner_history SET is_hidden = {self.p} WHERE id = {self.p}"
+        self.cursor.execute(sql, (1 if is_hidden else 0, banner_id))
+        self.commit()
+        return self.cursor.rowcount
+
+    def admin_delete(self, banner_id):
+        """Admin xóa bất kỳ banner nào."""
+        sql = f"DELETE FROM banner_history WHERE id = {self.p}"
+        self.cursor.execute(sql, (banner_id,))
+        self.commit()
+        return self.cursor.rowcount
+
+    def get_by_id(self, banner_id):
+        """Lấy thông tin một banner theo id."""
+        sql = f"SELECT * FROM banner_history WHERE id = {self.p}"
+        self.cursor.execute(sql, (banner_id,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
 
     def create(self, user_id, description, aspect_ratio, resolution, prompt, image_url, token_cost=1, reference_images=None, is_public=True):
         sql = f"""

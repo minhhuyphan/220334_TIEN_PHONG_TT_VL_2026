@@ -11,6 +11,7 @@ import History from './components/History';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
 import HomePage from './components/HomePage';
+import CustomPage from './components/CustomPage';
 import { Toaster, toast } from 'react-hot-toast';
 
 // Wrapper for components needing onNavigate
@@ -68,10 +69,6 @@ const AppContent: React.FC = () => {
     try {
       const userData = await apiService.getMe();
       setUser(userData);
-      // Determine if we need to redirect after login (e.g. from / -> /dashboard)
-      if (location.pathname === '/') {
-        navigate(__APP_ROUTES__.DASHBOARD);
-      }
     } catch (error) {
       console.error("Auth session expired", error);
       localStorage.removeItem(__TOKEN_KEY__);
@@ -155,6 +152,7 @@ const AppContent: React.FC = () => {
     return (
       <Routes>
         <Route path="/" element={<HomePage onLoginSuccess={handleLogin} />} />
+        <Route path="/page/:slug" element={<CustomPage user={null} onNavigate={navigate} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -167,7 +165,6 @@ const AppContent: React.FC = () => {
         <Route path={__APP_ROUTES__.GENERATE} element={<ComponentWrapper component={BannerGenerator} user={user} refreshUser={fetchUser} />} />
         <Route path={__APP_ROUTES__.BILLING} element={<ComponentWrapper component={Billing} user={user} refreshUser={fetchUser} />} />
         <Route path={__APP_ROUTES__.HISTORY} element={<ComponentWrapper component={History} user={user} />} />
-        <Route path="/" element={<Navigate to={__APP_ROUTES__.DASHBOARD} replace />} />
       </Route>
       
       {/* Admin Route - Standalone Layout */}
@@ -175,6 +172,9 @@ const AppContent: React.FC = () => {
         path={__APP_ROUTES__.ADMIN} 
         element={<ComponentWrapper component={AdminPanel} user={user} />} 
       />
+      
+      <Route path="/" element={<HomePage onLoginSuccess={handleLogin} user={user} onNavigate={navigate} />} />
+      <Route path="/page/:slug" element={<CustomPage user={user} onNavigate={navigate} />} />
     </Routes>
   );
 };

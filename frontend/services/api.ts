@@ -304,6 +304,23 @@ export const apiService = {
     if (!response.ok) throw new Error('Failed to toggle banner public status');
   },
 
+  async adminToggleBannerVisibility(bannerId: number, isHidden: boolean): Promise<void> {
+    const response = await fetch(`${__API_URL__}/admin/banners/${bannerId}/visibility`, {
+      method: 'PATCH',
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_hidden: isHidden })
+    });
+    if (!response.ok) throw new Error('Failed to toggle banner visibility');
+  },
+
+  async adminDeleteBanner(bannerId: number): Promise<void> {
+    const response = await fetch(`${__API_URL__}/admin/banners/${bannerId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to delete banner');
+  },
+
   async uploadFile(file: File): Promise<{ filename: string; url: string }> {
     const formData = new FormData();
     formData.append("file", file);

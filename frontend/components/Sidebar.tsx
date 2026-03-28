@@ -7,7 +7,8 @@ import {
   LogOut,
   Sparkles,
   Shield,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -22,6 +23,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ currentRoute, onNavigate, onLogout, user, isOpen, onClose }) => {
   const navItems = [
+    { id: '/', label: 'Trang Chủ', icon: Home },
     { id: __APP_ROUTES__.DASHBOARD, label: 'Tổng Quan', icon: LayoutDashboard },
     { id: __APP_ROUTES__.GENERATE, label: 'Tạo Banner AI', icon: Palette },
     { id: __APP_ROUTES__.BILLING, label: 'Gói Cước', icon: CreditCard },
@@ -48,7 +50,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, onNavigate, onLogout, u
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="p-6 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div 
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => onNavigate('/')}
+          >
             <img src="/logo.png" alt="Logo" className="h-10 w-10 object-contain" />
             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
               AutoBanner

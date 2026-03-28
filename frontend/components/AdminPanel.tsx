@@ -20,13 +20,17 @@ import {
   BarChart,
   History as HistoryIcon,
   Maximize2,
-  Globe
+  Globe,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User } from '../types';
 import toast from 'react-hot-toast';
 import ConfirmModal from './ConfirmModal';
 import AdminSeoSettings from './AdminSeoSettings';
+import AdminHomepageSettings from './AdminHomepageSettings';
+import AdminPagesManage from './AdminPagesManage';
 
 interface AdminUser {
   id: number;
@@ -62,6 +66,7 @@ interface AdminBanner {
   token_cost: number;
   created_at: string;
   prompt_used?: string;
+  is_hidden?: number | boolean;
 }
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -93,8 +98,81 @@ interface AdminPanelProps {
   onNavigate: (route: string) => void;
 }
 
+const CustomModelDropdown = ({ 
+  models, 
+  value, 
+  onChange, 
+  onDelete, 
+  onRestore, 
+  placeholder = "Chọn mô hình" 
+}: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedModel = models.find((m: any) => m.value === value) || models[0];
+
+  return (
+    <div className="relative flex-1" ref={dropdownRef}>
+      <div 
+        className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white cursor-pointer flex justify-between items-center h-[42px]"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="truncate pr-2">{selectedModel ? selectedModel.label : placeholder}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-[300px] overflow-y-auto">
+          <div className="p-1">
+            <div className="text-xs font-bold text-slate-500 px-2 py-1 uppercase tracking-wider mb-1 mt-1">Danh sách mô hình</div>
+            {models.map((m: any) => (
+              <div 
+                key={m.value} 
+                className={`flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-slate-50 cursor-pointer ${m.value === value ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                onClick={() => { onChange(m.value); setIsOpen(false); }}
+              >
+                <div className="truncate pr-4 text-sm font-medium">{m.label}</div>
+                <button 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    onDelete(m.value); 
+                    setIsOpen(false);
+                  }}
+                  className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors shrink-0"
+                  title="Xoá mô hình này"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+            
+            <div className="h-px bg-slate-100 my-1 mx-2"></div>
+            <div className="text-xs font-bold text-slate-500 px-2 py-1 uppercase tracking-wider mb-1 mt-1">Hành động</div>
+            <div 
+              className="flex items-center gap-2 px-2 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-md cursor-pointer font-medium"
+              onClick={() => { onRestore(); setIsOpen(false); }}
+            >
+              <span>🔄</span> Lấy lại danh sách gốc
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'payments' | 'banners' | 'stats' | 'packages' | 'settings' | 'seo'>('stats');
+  const [activeTab, setActiveTab] = useState<'users' | 'payments' | 'banners' | 'stats' | 'packages' | 'settings' | 'seo' | 'home' | 'pages'>('stats');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [payments, setPayments] = useState<AdminPayment[]>([]);
   const [banners, setBanners] = useState<AdminBanner[]>([]);
@@ -140,6 +218,117 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
   const [userBanners, setUserBanners] = useState<AdminBanner[]>([]);
   const [isDeletingUser, setIsDeletingUser] = useState<number | null>(null);
 
+  // Pagination state for Banners
+  const [currentBannerPage, setCurrentBannerPage] = useState(1);
+  const bannersPerPage = 15;
+
+  // Custom AI Models State
+  const defaultTextModels = [
+    { value: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (Bộ não mạnh nhất)" },
+    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+    { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro (Nâng cao)" },
+    { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+  ];
+  const [textModels, setTextModels] = useState<{value: string, label: string}[]>(() => {
+    try { 
+      const stored = localStorage.getItem('admin_text_models');
+      if (stored) return JSON.parse(stored);
+      return defaultTextModels;
+    } catch { return defaultTextModels; }
+  });
+  const [newTextModelValue, setNewTextModelValue] = useState("");
+  const [newTextModelLabel, setNewTextModelLabel] = useState("");
+
+  const defaultImageModels = [
+    { value: "gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash Image (Vẽ chữ VIP)" },
+    { value: "imagen-4.0-generate-001", label: "Imagen 4.0 Ultra (Đẳng cấp nhất)" },
+    { value: "gemini-3.0-fast-image-preview", label: "Gemini 3.0 Fast Image (Preview)" },
+    { value: "gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image" },
+    { value: "gemini-2.5-pro-image", label: "Gemini 2.5 Pro Image" },
+    { value: "gemini-2.0-flash-exp", label: "Gemini 2.0 Flash EXP (Preview)" },
+  ];
+  const [imageModels, setImageModels] = useState<{value: string, label: string}[]>(() => {
+    try { 
+      const stored = localStorage.getItem('admin_image_models');
+      if (stored) return JSON.parse(stored);
+      return defaultImageModels;
+    } catch { return defaultImageModels; }
+  });
+  const [newImageModelValue, setNewImageModelValue] = useState("");
+  const [newImageModelLabel, setNewImageModelLabel] = useState("");
+
+  const handleAddCustomTextModel = () => {
+    if (!newTextModelValue) return;
+    if (textModels.find(m => m.value === newTextModelValue)) return;
+    const newModels = [...textModels, { value: newTextModelValue.trim(), label: newTextModelLabel.trim() || newTextModelValue.trim() }];
+    setTextModels(newModels);
+    localStorage.setItem('admin_text_models', JSON.stringify(newModels));
+    setNewTextModelValue(""); setNewTextModelLabel("");
+  };
+
+  const handleDeleteTextModel = (val: string) => {
+    if (textModels.length <= 1) {
+       toast.error("Phải giữ lại ít nhất 1 mô hình!");
+       return;
+    }
+    const modelItem = textModels.find(m => m.value === val);
+    setConfirmConfig({
+      isOpen: true,
+      title: "Xác nhận xoá mô hình",
+      message: `Bạn chắc chắn muốn xoá mô hình "${modelItem?.label || val}" khỏi danh sách?`,
+      onConfirm: () => {
+        const newModels = textModels.filter(m => m.value !== val);
+        setTextModels(newModels);
+        localStorage.setItem('admin_text_models', JSON.stringify(newModels));
+        if (aiModel === val) setAiModel(newModels[0].value);
+        toast.success("Đã xoá mô hình an toàn");
+      }
+    });
+  };
+
+  const handleAddCustomImageModel = () => {
+    if (!newImageModelValue) return;
+    if (imageModels.find(m => m.value === newImageModelValue)) return;
+    const newModels = [...imageModels, { value: newImageModelValue.trim(), label: newImageModelLabel.trim() || newImageModelValue.trim() }];
+    setImageModels(newModels);
+    localStorage.setItem('admin_image_models', JSON.stringify(newModels));
+    setNewImageModelValue(""); setNewImageModelLabel("");
+  };
+
+  const handleRestoreTextModels = () => {
+    setTextModels(defaultTextModels);
+    localStorage.setItem('admin_text_models', JSON.stringify(defaultTextModels));
+    setAiModel(defaultTextModels[0].value);
+    toast.success("Đã khôi phục danh sách mô hình mặc định!");
+  };
+
+  const handleRestoreImageModels = () => {
+    setImageModels(defaultImageModels);
+    localStorage.setItem('admin_image_models', JSON.stringify(defaultImageModels));
+    setImageModel(defaultImageModels[0].value);
+    toast.success("Đã khôi phục danh sách mô hình mặc định!");
+  };
+
+  const handleDeleteImageModel = (val: string) => {
+    if (imageModels.length <= 1) {
+       toast.error("Phải giữ lại ít nhất 1 mô hình!");
+       return;
+    }
+    const modelItem = imageModels.find(m => m.value === val);
+    setConfirmConfig({
+      isOpen: true,
+      title: "Xác nhận xoá mô hình",
+      message: `Bạn chắc chắn muốn xoá mô hình "${modelItem?.label || val}" khỏi danh sách?`,
+      onConfirm: () => {
+        const newModels = imageModels.filter(m => m.value !== val);
+        setImageModels(newModels);
+        localStorage.setItem('admin_image_models', JSON.stringify(newModels));
+        if (imageModel === val) setImageModel(newModels[0].value);
+        toast.success("Đã xoá mô hình an toàn");
+      }
+    });
+  };
+
   // Confirmation modal state
   const [confirmConfig, setConfirmConfig] = useState<{
     isOpen: boolean;
@@ -159,6 +348,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
     { id: 'banners', label: 'LỊCH SỬ', icon: Image },
     { id: 'payments', label: 'HOÁ ĐƠN', icon: CreditCard },
     { id: 'packages', label: 'GÓI NẠP', icon: Package },
+    { id: 'home', label: 'TRANG CHỦ', icon: Globe },
+    { id: 'pages', label: 'TRANG NỘI DUNG', icon: Edit },
     { id: 'seo', label: 'SEO', icon: Globe },
     { id: 'settings', label: 'CẤU HÌNH HỆ THỐNG', icon: Settings },
   ];
@@ -474,6 +665,34 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
     });
   };
 
+  const handleToggleBannerVisibility = async (banner: AdminBanner) => {
+    try {
+      const newHiddenState = banner.is_hidden ? false : true;
+      await apiService.adminToggleBannerVisibility(banner.id, newHiddenState);
+      toast.success(newHiddenState ? "Đã ẩn banner khỏi trang chủ" : "Đã hiện banner lại trên trang chủ");
+      fetchBanners();
+    } catch (error) {
+      toast.error("Lỗi khi thay đổi trạng thái ẩn/hiện banner");
+    }
+  };
+
+  const handleDeleteBanner = (banner: AdminBanner) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: "Xác nhận xoá ảnh",
+      message: "Bạn có chắc chắn muốn xóa vĩnh viễn bức ảnh này khỏi hệ thống không? Dữ liệu con rồng này sẽ bốc hơi.",
+      onConfirm: async () => {
+        try {
+          await apiService.adminDeleteBanner(banner.id);
+          toast.success("Đã xoá ảnh thành công");
+          fetchBanners();
+        } catch (error) {
+          toast.error("Lỗi xóa ảnh");
+        }
+      }
+    });
+  };
+
   const startEditPackage = (pkg?: Package) => {
     if (pkg) {
       setEditingPackageId(pkg.id);
@@ -517,6 +736,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
   const filteredBanners = banners.filter(banner =>
     (banner.request_description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalBannerPages = Math.ceil(filteredBanners.length / bannersPerPage);
+  const paginatedBanners = filteredBanners.slice(
+    (currentBannerPage - 1) * bannersPerPage,
+    currentBannerPage * bannersPerPage
+  );
+
+  // Reset page when switching tabs or searching
+  useEffect(() => {
+    setCurrentBannerPage(1);
+  }, [activeTab, searchTerm]);
 
   if (!currentUser.is_admin) {
     return (
@@ -584,7 +814,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             {/* Search Bar */}
-            {activeTab !== 'stats' && activeTab !== 'packages' && activeTab !== 'settings' && activeTab !== 'seo' && (
+            {activeTab !== 'stats' && activeTab !== 'packages' && activeTab !== 'settings' && activeTab !== 'seo' && activeTab !== 'home' && activeTab !== 'pages' && (
               <div className="p-4 border-b border-slate-200 bg-white">
                 <div className="relative max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
@@ -899,22 +1129,49 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
                           <thead>
                             <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                               <th className="py-3 px-4">Mã</th>
+                              <th className="py-3 px-4 w-24 text-center">Ảnh</th>
                               <th className="py-3 px-4">User</th>
                               <th className="py-3 px-4">Mô tả</th>
                               <th className="py-3 px-4">Thông tin</th>
                               <th className="py-3 px-4">Chi phí</th>
                               <th className="py-3 px-4">Ngày tạo</th>
+                              <th className="py-3 px-4 text-right">Thao tác</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {filteredBanners.map((banner) => (
-                              <tr key={banner.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            {paginatedBanners.map((banner) => (
+                              <tr key={banner.id} className={`border-b border-slate-100 transition-colors ${banner.is_hidden ? 'opacity-60 bg-slate-50' : 'hover:bg-slate-50'}`}>
                                 <td className="py-4 px-4 text-xs font-mono text-slate-400 cursor-pointer hover:text-indigo-600" onClick={() => setSelectedBannerDetail(banner)}>#{banner.id}</td>
+                                <td className="py-2 px-4 cursor-pointer" onClick={() => setSelectedBannerDetail(banner)}>
+                                  <div className="h-10 w-16 md:h-12 md:w-20 rounded shadow-sm border border-slate-200 overflow-hidden relative group mx-auto">
+                                    <img src={banner.image_url} alt="Preview" className="h-full w-full object-cover transition-transform group-hover:scale-110" loading="lazy" />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                      <Maximize2 className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                  </div>
+                                </td>
                                 <td className="py-4 px-4 text-xs font-bold text-slate-700 cursor-pointer hover:text-indigo-600" onClick={() => setSelectedBannerDetail(banner)}>#{banner.user_id}</td>
                                 <td className="py-4 px-4 text-sm text-slate-700 max-w-xs truncate cursor-pointer hover:text-indigo-600" title={banner.request_description} onClick={() => setSelectedBannerDetail(banner)}>{banner.request_description}</td>
                                 <td className="py-4 px-4 text-xs text-slate-500">{banner.aspect_ratio} • {banner.resolution}</td>
                                 <td className="py-4 px-4"><span className="px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full text-xs font-bold">{banner.token_cost} tok</span></td>
                                 <td className="py-4 px-4 text-xs text-slate-400">{formatDate(banner.created_at)}</td>
+                                <td className="py-4 px-4 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleToggleBannerVisibility(banner); }}
+                                      className={`px-2 py-1 text-xs rounded font-bold border transition-colors ${banner.is_hidden ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                                    >
+                                      {banner.is_hidden ? 'Đang Ẩn' : 'Ẩn (Public)'}
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteBanner(banner); }}
+                                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Xóa"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -923,20 +1180,115 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
 
                       {/* Mobile Banner List */}
                       <div className="md:hidden space-y-3">
-                         {filteredBanners.map((banner) => (
-                           <div key={banner.id} className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                             <div className="flex justify-between items-start">
-                               <p className="text-xs font-bold text-slate-800 line-clamp-1">{banner.request_description}</p>
-                               <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-bold">{banner.token_cost} Token</span>
+                         {paginatedBanners.map((banner) => (
+                           <div key={banner.id} className="bg-white p-4 rounded-xl border border-slate-200 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+                             <div className="flex gap-3">
+                               <div className="h-16 w-24 rounded border border-slate-200 overflow-hidden flex-shrink-0 cursor-pointer relative group" onClick={() => setSelectedBannerDetail(banner)}>
+                                 <img src={banner.image_url} alt="Banner" className="h-full w-full object-cover" loading="lazy" />
+                                 <div className="absolute inset-0 bg-black/5 flex items-center justify-center group-active:bg-black/20 transition-colors">
+                                   <Maximize2 className="h-4 w-4 text-white opacity-0 group-active:opacity-100" />
+                                 </div>
+                               </div>
+                               <div className="flex-1 space-y-1.5 min-w-0">
+                                 <div className="flex justify-between items-start gap-2">
+                                   <p className="text-xs font-bold text-slate-800 line-clamp-2">{banner.request_description}</p>
+                                 </div>
+                                 <div className="flex justify-between items-center">
+                                   <p className="text-[10px] text-slate-500">{banner.aspect_ratio} • {banner.resolution}</p>
+                                   <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap">{banner.token_cost} Token</span>
+                                 </div>
+                               </div>
                              </div>
-                             <p className="text-[10px] text-slate-500">{banner.aspect_ratio} • {banner.resolution}</p>
-                             <div className="flex justify-between items-center text-[9px] text-slate-400 pt-2 border-t border-slate-50">
+                             <div className="flex justify-between items-center text-[9px] text-slate-400 pt-3 border-t border-slate-50">
                                 <span>Tạo bởi: #{banner.user_id}</span>
-                                <span>{formatDate(banner.created_at)}</span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleToggleBannerVisibility(banner); }}
+                                    className={`px-2 py-1 text-[10px] rounded font-bold border transition-colors ${banner.is_hidden ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                                  >
+                                    {banner.is_hidden ? 'Đang Ẩn' : 'Ẩn (Public)'}
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteBanner(banner); }}
+                                    className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    title="Xóa"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
                              </div>
                            </div>
                          ))}
                       </div>
+
+                      {/* Pagination Controls */}
+                      {totalBannerPages > 1 && (
+                        <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6 rounded-b-xl">
+                          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                            <div>
+                              <p className="text-sm text-slate-700">
+                                Hiển thị <span className="font-medium">{(currentBannerPage - 1) * bannersPerPage + 1}</span> đến <span className="font-medium">{Math.min(currentBannerPage * bannersPerPage, filteredBanners.length)}</span> trong tổng số <span className="font-medium">{filteredBanners.length}</span> banner
+                              </p>
+                            </div>
+                            <div>
+                              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                <button
+                                  onClick={() => setCurrentBannerPage(prev => Math.max(prev - 1, 1))}
+                                  disabled={currentBannerPage === 1}
+                                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                  <span className="sr-only">Previous</span>
+                                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                                </button>
+                                {[...Array(totalBannerPages)].map((_, i) => {
+                                  // Show max 5 pages around current
+                                  if (i === 0 || i === totalBannerPages - 1 || Math.abs(currentBannerPage - (i + 1)) <= 2) {
+                                    return (
+                                      <button
+                                        key={i + 1}
+                                        onClick={() => setCurrentBannerPage(i + 1)}
+                                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${currentBannerPage === i + 1 ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600' : 'text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0'}`}
+                                      >
+                                        {i + 1}
+                                      </button>
+                                    );
+                                  } else if (Math.abs(currentBannerPage - (i + 1)) === 3) {
+                                      return <span key={i + 1} className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 focus:outline-offset-0">...</span>
+                                  }
+                                  return null;
+                                })}
+                                <button
+                                  onClick={() => setCurrentBannerPage(prev => Math.min(prev + 1, totalBannerPages))}
+                                  disabled={currentBannerPage === totalBannerPages}
+                                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                  <span className="sr-only">Next</span>
+                                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                                </button>
+                              </nav>
+                            </div>
+                          </div>
+                          
+                          {/* Mobile simple pagination */}
+                          <div className="flex flex-1 justify-between sm:hidden">
+                            <button
+                              onClick={() => setCurrentBannerPage(prev => Math.max(prev - 1, 1))}
+                              disabled={currentBannerPage === 1}
+                              className="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            >
+                              Trước
+                            </button>
+                            <span className="inline-flex items-center text-sm font-medium text-slate-700">Trang {currentBannerPage} / {totalBannerPages}</span>
+                            <button
+                              onClick={() => setCurrentBannerPage(prev => Math.min(prev + 1, totalBannerPages))}
+                              disabled={currentBannerPage === totalBannerPages}
+                              className="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            >
+                              Tiếp
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       {filteredBanners.length === 0 && (
                         <div className="text-center py-12 text-slate-500">Không tìm thấy banner</div>
@@ -1086,6 +1438,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
                     <AdminSeoSettings />
                   )}
 
+                  {/* Homepage Tab */}
+                  {activeTab === 'home' && (
+                    <AdminHomepageSettings />
+                  )}
+
+                  {/* Pages Manage Tab */}
+                  {activeTab === 'pages' && (
+                    <AdminPagesManage />
+                  )}
+
                   {/* Settings Tab */}
                   {activeTab === 'settings' && (
                     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border p-4 md:p-6">
@@ -1104,21 +1466,41 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
                             <label className="block text-sm font-bold text-slate-700 mb-1">Mô hình ngôn ngữ (Text Model)</label>
                             <p className="text-xs text-slate-500 mb-3">Tuỳ chỉnh mô hình xử lý Text Prompt và Logic (Dòng Gemini 2.x hoặc 3.x Flash).</p>
                             <div className="flex flex-col sm:flex-row gap-3">
-                              <select 
+                              <CustomModelDropdown 
+                                models={textModels}
                                 value={aiModel}
-                                onChange={(e) => setAiModel(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                              >
-                                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Bộ não mạnh nhất)</option>
-                                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Nâng cao)</option>
-                                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                              </select>
+                                onChange={setAiModel}
+                                onDelete={handleDeleteTextModel}
+                                onRestore={handleRestoreTextModels}
+                              />
                               <button
                                 onClick={handleUpdateAiModel}
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 whitespace-nowrap font-bold text-sm"
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 whitespace-nowrap font-bold text-sm shrink-0"
                               >
                                 Lưu Text Model
+                              </button>
+                            </div>
+                            <div className="mt-2 flex gap-2">
+                              <input 
+                                type="text" 
+                                placeholder="VD: gemini-1.5-pro" 
+                                value={newTextModelValue}
+                                onChange={e => setNewTextModelValue(e.target.value)}
+                                className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                              />
+                              <input 
+                                type="text" 
+                                placeholder="Ghi chú (Tên hiển thị)" 
+                                value={newTextModelLabel}
+                                onChange={e => setNewTextModelLabel(e.target.value)}
+                                className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                              />
+                              <button 
+                                onClick={handleAddCustomTextModel}
+                                disabled={!newTextModelValue}
+                                className="px-3 py-1.5 text-sm bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 disabled:opacity-50 shrink-0"
+                              >
+                                Thêm vào danh sách
                               </button>
                             </div>
                           </div>
@@ -1127,23 +1509,41 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
                             <label className="block text-sm font-bold text-slate-700 mb-1">Mô hình tạo ảnh (Image Model)</label>
                             <p className="text-xs text-slate-500 mb-3">Mô hình chuyên biệt dùng để sinh banner/vẽ ảnh từ hệ thống.</p>
                             <div className="flex flex-col sm:flex-row gap-3">
-                              <select 
+                              <CustomModelDropdown 
+                                models={imageModels}
                                 value={imageModel}
-                                onChange={(e) => setImageModel(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                              >
-                                <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image (Vẽ chữ VIP)</option>
-                                <option value="imagen-4.0-generate-001">Imagen 4.0 Ultra (Đẳng cấp nhất)</option>
-                                <option value="gemini-3.0-fast-image-preview">Gemini 3.0 Fast Image (Preview)</option>
-                                <option value="gemini-2.5-flash-image">Gemini 2.5 Flash Image</option>
-                                <option value="gemini-2.5-pro-image">Gemini 2.5 Pro Image</option>
-                                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash EXP (Preview)</option>
-                              </select>
+                                onChange={setImageModel}
+                                onDelete={handleDeleteImageModel}
+                                onRestore={handleRestoreImageModels}
+                              />
                               <button
                                 onClick={handleUpdateImageModel}
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 whitespace-nowrap font-bold text-sm"
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 whitespace-nowrap font-bold text-sm shrink-0"
                               >
                                 Lưu Image Model
+                              </button>
+                            </div>
+                            <div className="mt-2 flex gap-2">
+                              <input 
+                                type="text" 
+                                placeholder="VD: flux-dev-pro-1" 
+                                value={newImageModelValue}
+                                onChange={e => setNewImageModelValue(e.target.value)}
+                                className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                              />
+                              <input 
+                                type="text" 
+                                placeholder="Ghi chú (Tên hiển thị)" 
+                                value={newImageModelLabel}
+                                onChange={e => setNewImageModelLabel(e.target.value)}
+                                className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                              />
+                              <button 
+                                onClick={handleAddCustomImageModel}
+                                disabled={!newImageModelValue}
+                                className="px-3 py-1.5 text-sm bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 disabled:opacity-50 shrink-0"
+                              >
+                                Thêm vào danh sách
                               </button>
                             </div>
                           </div>

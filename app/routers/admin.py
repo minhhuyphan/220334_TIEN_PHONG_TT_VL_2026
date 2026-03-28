@@ -43,6 +43,28 @@ def verify_admin(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
+def get_config_manager():
+    manager = ConfigManager()
+    try:
+        yield manager
+    finally:
+        manager.close()
+
+@router.post("/config/homepage")
+async def update_homepage_config(
+    data: dict = Body(...),
+    admin: dict = Depends(verify_admin),
+    config_manager: ConfigManager = Depends(get_config_manager)
+):
+    import json
+    try:
+        # Save as JSON string
+        config_manager.set_value("homepage_config", json.dumps(data, ensure_ascii=False))
+        return {"success": True, "message": "Updated homepage config"}
+    except Exception as e:
+        logger.error(f"Error updating homepage config: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to save config")
+
 @router.get("/users")
 async def get_all_users(
     admin: dict = Depends(verify_admin),
@@ -412,6 +434,43 @@ async def get_user_banners(
         return banners
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching user banners: {str(e)}")
+
+@router.patch("/banners/{banner_id}/visibility")
+async def admin_toggle_banner_visibility(
+    banner_id: int,
+    is_hidden: bool = Body(..., embed=True),
+    admin: dict = Depends(verify_admin),
+    banner_manager: BannerHistoryManager = Depends(get_banner_manager)
+):
+    """Admin ẩn/hiện banner trên trang chủ (không xóa)"""
+    try:
+        count = banner_manager.admin_set_hidden(banner_id, is_hidden)
+        if count == 0:
+            raise HTTPException(status_code=404, detail="Banner không tìm thấy")
+        action = "Ẩn" if is_hidden else "Hiện"
+        return {"message": f"{action} banner thành công", "is_hidden": is_hidden}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@router.delete("/banners/{banner_id}")
+async def admin_delete_banner(
+    banner_id: int,
+    admin: dict = Depends(verify_admin),
+    banner_manager: BannerHistoryManager = Depends(get_banner_manager)
+):
+    """Admin xóa bất kỳ banner nào"""
+    try:
+        banner = banner_manager.get_by_id(banner_id)
+        if not banner:
+            raise HTTPException(status_code=404, detail="Banner không tìm thấy")
+        banner_manager.admin_delete(banner_id)
+        return {"message": "Xóa banner thành công"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 # Config Management
 def get_config_manager():

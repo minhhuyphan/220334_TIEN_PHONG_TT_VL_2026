@@ -15,7 +15,11 @@ import {
   X,
   Image as ImageIcon,
   History as HistoryIcon,
-  RefreshCcw
+  RefreshCcw,
+  Globe,
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmModal from './ConfirmModal';
@@ -86,6 +90,24 @@ const History: React.FC<HistoryProps> = ({ user, onNavigate }) => {
         }
       }
     });
+  };
+
+  const handleTogglePublic = async (item: BannerHistoryItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const currentIsPublic = item.is_public === 1 || item.is_public === true;
+    const newIsPublic = !currentIsPublic;
+    try {
+      await apiService.toggleBannerPublic(item.id, newIsPublic);
+      setBannerHistory(prev => prev.map(b => 
+        b.id === item.id ? { ...b, is_public: newIsPublic ? 1 : 0 } : b
+      ));
+      if (selectedBanner?.id === item.id) {
+        setSelectedBanner(prev => prev ? { ...prev, is_public: newIsPublic ? 1 : 0 } : null);
+      }
+      toast.success(newIsPublic ? 'Đã chia sẻ lên cộng đồng' : 'Đã chuyển sang riêng tư');
+    } catch {
+      toast.error('Cập nhật thất bại');
+    }
   };
 
   const handleClearAllBanners = () => {
@@ -228,10 +250,26 @@ const History: React.FC<HistoryProps> = ({ user, onNavigate }) => {
                           loading="lazy"
                         />
                         <div className="absolute inset-0 bg-black/5 md:bg-black/0 md:group-hover:bg-black/10 transition-colors" />
+                        {/* Badge trạng thái chia sẻ */}
+                        <div className="absolute top-2 left-2">
+                          {item.is_hidden ? (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-red-500/90 text-white text-[10px] font-bold rounded-full backdrop-blur-sm shadow">
+                              <Lock className="h-3 w-3" /> Vô hiệu hoá
+                            </span>
+                          ) : (item.is_public === 1 || item.is_public === true) ? (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/90 text-white text-[10px] font-bold rounded-full backdrop-blur-sm shadow">
+                              <Globe className="h-3 w-3" /> Cộng đồng
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-slate-700/80 text-white text-[10px] font-bold rounded-full backdrop-blur-sm shadow">
+                              <Lock className="h-3 w-3" /> Riêng tư
+                            </span>
+                          )}
+                        </div>
                         <div className="absolute top-2 right-2 flex gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                            <button
                               onClick={(e) => handleDeleteBanner(item.id, e)}
-                              className="p-2 bg-white/90 text-red-600 rounded-lg md:rounded-full hover:bg-red-50 shadow-sm backdrop-blur-sm"
+                              className="p-2 bg-white/90 text-red-600 rounded-full hover:bg-red-50 shadow-sm backdrop-blur-sm"
                               title="Xoá"
                            >
                              <Trash2 className="h-4 w-4" />
@@ -249,6 +287,30 @@ const History: React.FC<HistoryProps> = ({ user, onNavigate }) => {
                         <p className="text-sm font-medium text-slate-800 line-clamp-2 leading-relaxed">
                           {item.request_description || "Không có mô tả"}
                         </p>
+                        {/* Nút toggle chia sẻ */}
+                        {item.is_hidden ? (
+                          <button
+                            disabled
+                            className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold bg-red-50 text-red-600 border border-red-200 cursor-not-allowed opacity-80"
+                          >
+                           <Lock className="h-3.5 w-3.5" /> Bị vô hiệu cho Cộng đồng
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => handleTogglePublic(item, e)}
+                            className={`mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-all ${
+                              (item.is_public === 1 || item.is_public === true)
+                                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
+                            }`}
+                          >
+                            {(item.is_public === 1 || item.is_public === true) ? (
+                              <><Globe className="h-3.5 w-3.5" /> Đang chia sẻ — Nhấn để ẩn</>
+                            ) : (
+                              <><Lock className="h-3.5 w-3.5" /> Riêng tư — Nhấn để chia sẻ</>
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}

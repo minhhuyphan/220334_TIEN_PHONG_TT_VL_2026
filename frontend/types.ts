@@ -83,7 +83,8 @@ export interface BannerHistoryItem {
   created_at: string;
   reference_images?: string;
   reference_images_list?: ReferenceImage[];
-  is_public?: boolean;
+  is_public?: number | boolean;
+  is_hidden?: number | boolean;
 }
 
 export interface PublicBannerItem {

@@ -39,6 +39,8 @@ DOWNLOAD_DIR = os.path.join(project_root, "utils", "download")
 if not os.path.exists(DOWNLOAD_DIR):
     os.makedirs(DOWNLOAD_DIR)
 
+from app.routers import file_upload, banner, auth, payment, admin, pages
+
 # Gom nhóm các router vào prefix /api/v1
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)
@@ -46,6 +48,7 @@ api_router.include_router(payment.router)
 api_router.include_router(file_upload.router)
 api_router.include_router(banner.router)
 api_router.include_router(admin.router)
+api_router.include_router(pages.router)
 
 # Include router tổng vào app
 app.include_router(api_router)
@@ -82,3 +85,18 @@ async def startup_event():
 @app.get("/")
 async def root():
     return {"message": "Welcome to API BANNER AI", "status": "running"}
+
+@app.get("/api/v1/config/homepage")
+async def get_homepage_config():
+    import json
+    from app.models.banner_db import ConfigManager
+    manager = ConfigManager()
+    try:
+        data = manager.get_value("homepage_config", None)
+        if data:
+            return json.loads(data)
+        return {}
+    except Exception as e:
+        return {}
+    finally:
+        manager.close()
