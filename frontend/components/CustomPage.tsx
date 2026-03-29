@@ -101,7 +101,12 @@ const CustomPage: React.FC<{ user: any, onNavigate: (path: string) => void }> = 
             <span className="text-xl">⚡</span>
             <span>Zephyr</span>
           </div>
-          <p className="text-slate-500 text-sm">© {new Date().getFullYear()} Zephyr. Đã đăng ký bản quyền.</p>
+          <div className="text-center md:text-right">
+            <p className="text-slate-500 text-sm">© {new Date().getFullYear()} Zephyr. Đã đăng ký bản quyền. <span className="text-red-500 font-bold ml-1">BETA</span></p>
+            <p className="text-slate-400 text-[11px] mt-1 font-medium italic">
+              Hệ thống đang trong giai đoạn thử nghiệm (Beta). Mọi giao dịch phục vụ mục đích trải nghiệm công nghệ.
+            </p>
+          </div>
           <div className="flex gap-4 text-sm font-medium">
              <button onClick={() => navigate('/')} className="text-slate-600 hover:text-indigo-600 transition-colors">Trang chủ</button>
           </div>

@@ -484,8 +484,13 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
              <img src="/logo.png" alt="Zephyr" style={{ height: '24px', width: '24px', objectFit: 'contain' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
              <span style={{ fontWeight: 700, color: V, fontSize: '15px' }}>Zephyr</span>
              <span style={{ color: TXT2, fontSize: '12px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(124,58,237,0.2)' }}>
-               © {new Date().getFullYear()} Công nghệ AI tiên phong
+               © {new Date().getFullYear()} Công nghệ AI tiên phong · <span style={{ color: '#ef4444', fontWeight: 600 }}>BETA</span>
              </span>
+          </div>
+          <div style={{ width: '100%', borderTop: '1px solid rgba(124,58,237,0.05)', marginTop: '8px', paddingTop: '16px', textAlign: 'center' }}>
+            <p style={{ color: TXT2, fontSize: '11px', fontStyle: 'italic' }}>
+              Hệ thống đang trong giai đoạn thử nghiệm (Beta). Mọi giao dịch phục vụ mục đích trải nghiệm công nghệ.
+            </p>
           </div>
           <div style={{ display: 'flex', gap: '20px' }}>
             {[['#features', 'Tính năng'], ['#gallery', 'Gallery']].map(([href, label]) => (
