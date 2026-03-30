@@ -209,13 +209,27 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
         .btn-violet:hover{filter:brightness(1.08);box-shadow:0 8px 30px rgba(124,58,237,0.45)!important;transform:translateY(-1px)}
         .gallery-card:hover{box-shadow:0 12px 36px rgba(124,58,237,0.15)!important;transform:translateY(-4px)}
         .footer-link:hover{color:#7C3AED!important}
+
+        /* Responsive Fixes */
+        @media (max-width: 768px) {
+          .nav-links-container { display: none !important; }
+          .nav-main { padding: 0 16px !important; }
+          .hero-container { padding: 0 24px 60px !important; }
+          .hero-title { font-size: 36px !important; }
+          .features-section { padding: 60px 20px !important; }
+          .footer-main { padding: 32px 20px !important; flex-direction: column !important; align-items: center !important; text-align: center !important; }
+          .footer-links { justify-content: center !important; width: 100% !important; margin-top: 20px !important; }
+          .workflow-container { padding: 60px 20px !important; gap: 40px !important; }
+          .gallery-section { padding: 60px 20px !important; }
+          .about-section { padding: 60px 20px !important; }
+        }
       `}</style>
 
       {/* NAVBAR */}
-      <nav style={{
+      <nav className="nav-main" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        background: scrolled ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.1)',
+        background: scrolled ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.05)',
         borderBottom: scrolled ? '1px solid rgba(124,58,237,0.12)' : '1px solid transparent',
         boxShadow: scrolled ? '0 2px 20px rgba(0,0,0,0.06)' : 'none',
         transition: 'all 0.4s ease', padding: '0 48px', height: '64px',
@@ -223,27 +237,25 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src="/logo.png" alt="Zephyr" style={{ height: '30px', width: '30px', objectFit: 'contain' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          <span style={{ fontWeight: 700, fontSize: '18px', color: V, letterSpacing: '-0.3px' }}>Zephyr</span>
+          <span style={{ fontWeight: 700, fontSize: '18px', color: scrolled ? V : '#fff', letterSpacing: '-0.3px', transition: 'color 0.3s' }}>Zephyr</span>
         </div>
-        <div style={{ display: 'flex', gap: '32px' }}>
-          {[['#features', 'Tính năng'], ['#gallery', 'Gallery'], ['#about', 'Về chúng tôi']].map(([href, label]) => (
-            <a key={href} href={href} className="nav-link" style={{ color: TXT2, fontSize: '14px', fontWeight: 500, textDecoration: 'none', transition: 'color 0.2s' }}>{label}</a>
+        <div className="nav-links-container" style={{ display: 'flex', gap: '32px' }}>
+          {[["#features", "Tính năng"], ["#gallery", "Gallery"], ["#about", "Về chúng tôi"]].map(([href, label]) => (
+            <a key={href} href={href} className="nav-link" style={{ color: scrolled ? TXT2 : 'rgba(255,255,255,0.8)', fontSize: '14px', fontWeight: 500, textDecoration: 'none', transition: 'all 0.2s' }}>{label}</a>
           ))}
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {user ? (
             <button className="btn-violet" onClick={() => onNavigate && onNavigate('/dashboard')}
-              style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '14px', padding: '9px 22px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 18px rgba(124,58,237,0.35)' }}
+              style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '13px', padding: '8px 18px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 18px rgba(124,58,237,0.35)', whiteSpace: 'nowrap' }}
             >Bảng điều khiển</button>
           ) : (
             <>
-              <button id="navbar-login-btn" onClick={() => setShowLoginModal(true)}
-                style={{ color: TXT2, fontSize: '14px', fontWeight: 500, background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px 14px', borderRadius: '24px', transition: 'all 0.2s' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = V; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = TXT2; }}
+              <button className="nav-links-container" id="navbar-login-btn" onClick={() => setShowLoginModal(true)}
+                style={{ color: scrolled ? TXT2 : '#fff', fontSize: '14px', fontWeight: 500, background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px 14px', borderRadius: '24px', transition: 'all 0.2s' }}
               >Đăng nhập</button>
               <button className="btn-violet" onClick={() => setShowLoginModal(true)}
-                style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '14px', padding: '9px 22px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 18px rgba(124,58,237,0.35)' }}
+                style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '13px', padding: '8px 18px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 18px rgba(124,58,237,0.35)', whiteSpace: 'nowrap' }}
               >Tạo ngay</button>
             </>
           )}
@@ -276,15 +288,15 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
         <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: 'linear-gradient(to right, rgba(15,10,30,0.88) 0%, rgba(15,10,30,0.3) 60%, transparent 100%)' }} />
         <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: 'linear-gradient(to top, rgba(15,10,30,1) 0%, rgba(15,10,30,0.4) 40%, transparent 70%)' }} />
 
-        <div style={{ position: 'relative', zIndex: 10, padding: '0 64px 80px', maxWidth: '750px', animation: 'fadeUp 1s ease both' }}>
+        <div className="hero-container" style={{ position: 'relative', zIndex: 10, padding: '0 64px 80px', maxWidth: '850px', animation: 'fadeUp 1s ease both' }}>
           {renderDynamic(config.hero.subtitle, 'rgba(255,255,255,0.6)', (text, color) => (
             <span style={{ display: 'inline-block', marginBottom: '22px', fontSize: '11px', letterSpacing: '3px', color: color, textTransform: 'uppercase', border: '1px solid rgba(255,255,255,0.2)', padding: '5px 16px', borderRadius: '20px', background: 'rgba(124,58,237,0.15)' }}>
               {text}
             </span>
           ))}
           {renderDynamic(config.hero.title, '#fff', (text, color) => (
-            <h1 
-              style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(40px, 5.5vw, 78px)', fontWeight: 700, lineHeight: 1.1, marginBottom: '30px', color: color }}
+            <h1 className="hero-title"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(36px, 5.5vw, 78px)', fontWeight: 700, lineHeight: 1.1, marginBottom: '30px', color: color }}
               dangerouslySetInnerHTML={{ __html: text.replace('Zephyr', `<span style="background: linear-gradient(135deg,#a78bfa,#7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Zephyr</span>`).replace(/\n/g, '<br />') }}
             />
           ))}
@@ -310,7 +322,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
 
       {/* FEATURES */}
       {config.features.visible && (
-      <section id="features" style={{ padding: '120px 64px', background: BG }}>
+      <section id="features" className="features-section" style={{ padding: '120px 64px', background: BG }}>
         <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '72px' }}>
             {renderDynamic(config.features.subtitle, V, (text, color) => (
@@ -339,8 +351,8 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
 
       {/* HOW IT WORKS */}
       {config.workflow.visible && (
-      <section style={{ padding: '100px 64px', background: BG2 }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '80px', flexWrap: 'wrap' }}>
+      <section className="workflow-section" style={{ padding: '100px 64px', background: BG2 }}>
+        <div className="workflow-container" style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '80px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1', minWidth: '290px' }}>
             <div style={{ borderRadius: '24px', background: '#fff', border: '1px solid rgba(124,58,237,0.12)', padding: '36px', boxShadow: '0 4px 24px rgba(124,58,237,0.08)' }}>
               {[
@@ -385,7 +397,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
 
       {/* GALLERY */}
       {config.gallery.visible && (
-      <section id="gallery" style={{ padding: '120px 64px', background: BG }}>
+      <section id="gallery" className="gallery-section" style={{ padding: '120px 64px', background: BG }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '56px' }}>
             {renderDynamic(config.gallery.subtitle, V, (text, color) => (
@@ -441,7 +453,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
 
       {/* ABOUT / CTA */}
       {config.about.visible && (
-      <section id="about" style={{ padding: '120px 64px', background: `linear-gradient(135deg, ${V} 0%, #6D28D9 50%, #4C1D95 100%)`, textAlign: 'center' }}>
+      <section id="about" className="about-section" style={{ padding: '120px 64px', background: `linear-gradient(135deg, ${V} 0%, #6D28D9 50%, #4C1D95 100%)`, textAlign: 'center' }}>
         <div style={{ maxWidth: '780px', margin: '0 auto' }}>
           {renderDynamic(config.about.subtitle, 'rgba(255,255,255,0.7)', (text, color) => (
             <span style={{ fontSize: '12px', letterSpacing: '3px', color: color, textTransform: 'uppercase', display: 'block', marginBottom: '20px', fontWeight: 600 }}>✦ {text}</span>
@@ -478,47 +490,40 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
       )}
 
       {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid rgba(124,58,237,0.1)', padding: '32px 64px', background: BG }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <footer style={{ borderTop: '1px solid rgba(124,58,237,0.1)', background: BG }}>
+        <div className="footer-main" style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', padding: '32px 64px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
              <img src="/logo.png" alt="Zephyr" style={{ height: '24px', width: '24px', objectFit: 'contain' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
              <span style={{ fontWeight: 700, color: V, fontSize: '15px' }}>Zephyr</span>
              <span style={{ color: TXT2, fontSize: '12px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(124,58,237,0.2)' }}>
-               © {new Date().getFullYear()} Công nghệ AI tiên phong · <span style={{ color: '#ef4444', fontWeight: 600 }}>BETA</span>
+               © {new Date().getFullYear()} Công nghệ AI · <span style={{ color: '#ef4444', fontWeight: 600 }}>BETA</span>
              </span>
           </div>
-          <div style={{ width: '100%', borderTop: '1px solid rgba(124,58,237,0.05)', marginTop: '8px', paddingTop: '16px', textAlign: 'center' }}>
-            <p style={{ color: TXT2, fontSize: '11px', fontStyle: 'italic' }}>
-              Hệ thống đang trong giai đoạn thử nghiệm (Beta). Mọi giao dịch phục vụ mục đích trải nghiệm công nghệ.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '20px' }}>
+          <div className="footer-links" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
             {[['#features', 'Tính năng'], ['#gallery', 'Gallery']].map(([href, label]) => (
-              <a key={href} href={href} style={{ color: TXT2, fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = V; }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = TXT2; }}>{label}</a>
+              <a key={href} href={href} className="footer-link" style={{ color: TXT2, fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s' }}>{label}</a>
             ))}
             {publicPages.map(page => (
               <a 
                 key={page.slug} 
                 href={`/page/${page.slug}`}
                 onClick={(e) => { e.preventDefault(); onNavigate && onNavigate(`/page/${page.slug}`); }}
-                style={{ color: TXT2, fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s', cursor: 'pointer' }} 
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = V; }} 
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = TXT2; }}
+                className="footer-link"
+                style={{ color: TXT2, fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s', cursor: 'pointer' }}
               >
                 {page.title}
               </a>
             ))}
             {user ? (
-              <button 
-                onClick={() => onNavigate && onNavigate('/dashboard')} 
-                style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-              >Bảng điều khiển</button>
+              <button onClick={() => onNavigate && onNavigate('/dashboard')} style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Bảng điều khiển</button>
             ) : (
-              <button 
-                onClick={() => setShowLoginModal(true)} 
-                style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-              >Đăng nhập</button>
+              <button onClick={() => setShowLoginModal(true)} style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Đăng nhập</button>
             )}
+          </div>
+          <div style={{ width: '100%', borderTop: '1px solid rgba(124,58,237,0.05)', marginTop: '8px', paddingTop: '16px', textAlign: 'center' }}>
+            <p style={{ color: TXT2, fontSize: '11px', fontStyle: 'italic' }}>
+              Hệ thống đang trong giai đoạn thử nghiệm (Beta). Mọi giao dịch phục vụ mục đích trải nghiệm công nghệ.
+            </p>
           </div>
         </div>
       </footer>
