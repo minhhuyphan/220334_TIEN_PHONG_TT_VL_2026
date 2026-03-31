@@ -68,6 +68,12 @@ class BannerHistoryManager(DBConnection):
         row = self.cursor.fetchone()
         return row['count'] if row else 0
 
+    def get_total_spent_by_user(self, user_id):
+        sql = f"SELECT SUM(token_cost) as total FROM banner_history WHERE user_id = {self.p}"
+        self.cursor.execute(sql, (user_id,))
+        row = self.cursor.fetchone()
+        return row['total'] if row and row['total'] else 0
+
     def get_public_banners(self, limit=20):
         """Lấy banner cho gallery trang chủ — chỉ hiển thị banner is_public=1 và is_hidden=0."""
         sql = f"""SELECT bh.id, bh.image_url, bh.request_description, bh.aspect_ratio,

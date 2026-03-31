@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Globe, FileUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Page {
@@ -153,6 +153,29 @@ export default function AdminPagesManage() {
      }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.html')) {
+      toast.error('Chỉ hỗ trợ tải lên tệp .html');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setFormData(prev => ({ ...prev, content }));
+      toast.success('Đã tải nội dung từ tệp HTML');
+      // Reset input value so same file can be uploaded again if needed
+      e.target.value = '';
+    };
+    reader.onerror = () => {
+      toast.error('Lỗi khi đọc tệp');
+    };
+    reader.readAsText(file);
+  };
+
   if (isEditing) {
     return (
       <div className="bg-white rounded-xl shadow-sm border p-6">
@@ -208,8 +231,20 @@ export default function AdminPagesManage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1 flex justify-between">
-              <span>Nội dung (Hỗ trợ HTML/Tuỳ biến)</span>
+            <label className="block text-sm font-bold text-slate-700 mb-1 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <span>Nội dung (Hỗ trợ HTML/Tuỳ biến)</span>
+                <label className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-md cursor-pointer transition-colors text-xs font-bold border border-indigo-100">
+                  <FileUp className="h-3.5 w-3.5" />
+                  Tải file HTML
+                  <input 
+                    type="file" 
+                    accept=".html" 
+                    className="hidden" 
+                    onChange={handleFileUpload}
+                  />
+                </label>
+              </div>
               <div className="flex items-center gap-2">
                 <label className="text-xs font-normal cursor-pointer flex items-center gap-1">
                   <input 

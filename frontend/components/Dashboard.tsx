@@ -83,7 +83,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
           </div>
           <div>
             <p className="text-sm text-slate-500 font-medium">Tổng chi tiêu</p>
-            <h3 className="text-2xl font-bold text-slate-800">{stats.total_spent} Tokens</h3>
+            <h3 className="text-2xl font-bold text-slate-800">{stats.total_spent ?? 0} Tokens</h3>
           </div>
         </div>
       </div>

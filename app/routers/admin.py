@@ -204,8 +204,7 @@ async def get_stats(
             d['image_url'] = fix_banner_url(d['image_url'], request)
             recent_banners.append(d)
 
-        # Cost estimate: API cost (assume 100 VNĐ per banner for Image Gen + LLM)
-        api_cost_estimate = total_banners * 100
+
         
         # Combine chart data
         chart_data_map = {}
@@ -225,7 +224,7 @@ async def get_stats(
             "total_revenue": total_revenue,
             "total_banners": total_banners,
             "total_tokens_sold": total_tokens_sold,
-            "api_cost_estimate": api_cost_estimate,
+
             "chart_data": chart_data,
             "recent_payments": recent_payments,
             "recent_banners": recent_banners

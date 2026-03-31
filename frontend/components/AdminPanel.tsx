@@ -77,7 +77,7 @@ interface AdminStats {
   total_revenue: number;
   total_banners: number;
   total_tokens_sold: number;
-  api_cost_estimate?: number;
+
   chart_data?: any[];
   recent_payments?: any[];
   recent_banners?: any[];
@@ -886,14 +886,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ currentUser, onNavigate }) => {
                         <div className="text-orange-100">Token Đã Bán</div>
                       </div>
 
-                      <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl p-6 text-white shadow-md">
-                        <div className="flex items-center justify-between mb-4">
-                          <Activity className="h-8 w-8 opacity-80" />
-                          <TrendingUp className="h-5 w-5 opacity-60" />
-                        </div>
-                        <div className="text-3xl font-bold mb-1">{formatCurrency(stats.api_cost_estimate || 0)}</div>
-                        <div className="text-rose-100">Chi Phí API (Ước tính)</div>
-                      </div>
+
                     </div>
 
                     {/* Charts & Recent Activities */}

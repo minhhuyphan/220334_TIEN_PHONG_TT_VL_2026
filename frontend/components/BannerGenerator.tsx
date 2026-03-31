@@ -12,9 +12,19 @@ import {
   CheckCircle2,
   Maximize2,
   Sparkles as SparklesIcon, 
-  Image as ImageIcon 
+  Image as ImageIcon,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+// Extend Window interface for Speech Recognition
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
 
 interface BannerGeneratorProps {
   user: User;
@@ -54,6 +64,7 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
   const [error, setError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionQuery, setSuggestionQuery] = useState('');
+  const [isListening, setIsListening] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -256,6 +267,55 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
     setReferenceImages(prev => prev.map((img, i) => 
       i === index ? { ...img, label: newLabel } : img
     ));
+  };
+
+  const toggleListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      toast.error("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+      return;
+    }
+
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'vi-VN'; // Mặc định tiếng Việt
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      toast.success("Đang nghe... Mời bạn nói mô tả banner.");
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setPrompt(prev => prev + (prev ? " " : "") + transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+      
+      if (event.error === 'audio-capture') {
+        toast.error("Không tìm thấy Micro hoặc bạn chưa cho phép trình duyệt truy cập Micro.");
+      } else if (event.error === 'not-allowed') {
+        toast.error("Bạn đã chặn quyền truy cập Micro. Hãy kiểm tra cài đặt trình duyệt.");
+      } else {
+        toast.error("Lỗi nhận diện giọng nói: " + event.error);
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -468,6 +528,21 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
                 className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 resize-none text-slate-700"
               />
               
+              {/* Voice Input Button */}
+              <button
+                type="button"
+                onClick={toggleListening}
+                className={`absolute bottom-4 left-4 p-2 rounded-full transition-all flex items-center gap-2 group ${
+                  isListening 
+                    ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-200' 
+                    : 'bg-white text-slate-400 hover:text-indigo-600 border border-slate-100 hover:border-indigo-100 shadow-sm'
+                }`}
+                title={isListening ? "Đang nghe..." : "Nhập bằng giọng nói"}
+              >
+                {isListening ? <Mic className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                {isListening && <span className="text-[10px] font-bold mr-1">Đang nghe...</span>}
+              </button>
+
               {/* @ Suggestions Popup */}
               {showSuggestions && referenceImages.length > 0 && (
                 <div className="absolute left-4 bottom-4 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden min-w-[150px]">

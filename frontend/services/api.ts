@@ -339,6 +339,7 @@ export const apiService = {
 export interface DashboardStats {
   total_banners: number;
   token_balance: number;
+  total_spent: number;
   generation_score: string;
   recent_projects: {
     id: number;

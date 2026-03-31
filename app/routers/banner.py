@@ -462,9 +462,12 @@ async def get_dashboard_stats(
             except:
                 project['reference_images_list'] = []
 
+    total_spent = banner_history.get_total_spent_by_user(user_id)
+    
     return {
         "total_banners": total_banners,
         "token_balance": current_user['tokens'],
+        "total_spent": total_spent,
         "generation_score": score_label,
         "recent_projects": recent_banners
     }
