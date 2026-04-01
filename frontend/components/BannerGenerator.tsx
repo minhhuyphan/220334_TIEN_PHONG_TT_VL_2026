@@ -212,21 +212,31 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
   const totalCostPerBanner = costPerImage + referenceCostPerBanner;
   const totalCost = count * totalCostPerBanner;
 
-  const handleDownload = (imageUrl: string) => {
-    // Thêm tham số download=true để backend trả về Content-Disposition: attachment
-    const downloadUrl = imageUrl.includes('?') 
-      ? `${imageUrl}&download=true` 
-      : `${imageUrl}?download=true`;
-    
-    // Tạo thẻ a ẩn để kích hoạt tải xuống, tránh bị chặn popup
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.setAttribute('download', 'banner.png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success('Đang bắt đầu tải xuống...');
+  const handleDownload = async (imageUrl: string) => {
+    try {
+      toast.loading('Đang chuẩn bị tải xuống...', { id: 'downloading' });
+      
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `banner-${Date.now()}.png`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the object URL
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Đã tải xuống thành công!', { id: 'downloading' });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Tải xuống thất bại. Hãy thử lại!', { id: 'downloading' });
+      // Fallback
+      window.open(imageUrl, '_blank');
+    }
   };
 
   const handleViewLarge = (imageUrl: string) => {

@@ -127,19 +127,31 @@ const History: React.FC<HistoryProps> = ({ user, onNavigate }) => {
     });
   };
 
-  const handleDownload = (imageUrl: string) => {
-    const downloadUrl = imageUrl.includes('?') 
-      ? `${imageUrl}&download=true` 
-      : `${imageUrl}?download=true`;
-    
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.setAttribute('download', 'banner.png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success('Đang bắt đầu tải xuống...');
+  const handleDownload = async (imageUrl: string, filename: string = 'banner.png') => {
+    try {
+      toast.loading('Đang chuẩn bị tải xuống...', { id: 'downloading' });
+      
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the object URL
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Đã tải xuống thành công!', { id: 'downloading' });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Tải xuống thất bại. Hãy thử lại!', { id: 'downloading' });
+      // Fallback to old method if fetch fails (e.g. CORS)
+      window.open(imageUrl, '_blank');
+    }
   };
 
   const handleRegenerate = () => {
@@ -267,6 +279,16 @@ const History: React.FC<HistoryProps> = ({ user, onNavigate }) => {
                           )}
                         </div>
                         <div className="absolute top-2 right-2 flex gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                           <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownload(item.image_url, `banner-${item.id}.png`);
+                              }}
+                              className="p-2 bg-white/90 text-indigo-600 rounded-full hover:bg-indigo-50 shadow-sm backdrop-blur-sm"
+                              title="Tải xuống"
+                           >
+                             <Download className="h-4 w-4" />
+                           </button>
                            <button
                               onClick={(e) => handleDeleteBanner(item.id, e)}
                               className="p-2 bg-white/90 text-red-600 rounded-full hover:bg-red-50 shadow-sm backdrop-blur-sm"
