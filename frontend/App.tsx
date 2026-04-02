@@ -151,8 +151,9 @@ const AppContent: React.FC = () => {
   if (!user) {
     return (
       <Routes>
-        <Route path="/" element={<HomePage onLoginSuccess={handleLogin} />} />
+        <Route path="/" element={<HomePage onLoginSuccess={handleLogin} onNavigate={navigate} />} />
         <Route path="/page/:slug" element={<CustomPage user={null} onNavigate={navigate} />} />
+        <Route path="/app/page/:slug" element={<CustomPage user={null} onNavigate={navigate} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -175,6 +176,7 @@ const AppContent: React.FC = () => {
       
       <Route path="/" element={<HomePage onLoginSuccess={handleLogin} user={user} onNavigate={navigate} />} />
       <Route path="/page/:slug" element={<CustomPage user={user} onNavigate={navigate} />} />
+      <Route path="/app/page/:slug" element={<CustomPage user={user} onNavigate={navigate} />} />
     </Routes>
   );
 };
