@@ -16,6 +16,8 @@ def get_db_connection():
             'password': settings.DB_PASSWORD,
             'database': settings.DB_DATABASE,
             'autocommit': True,
+            'charset': 'utf8mb4',
+            'collation': 'utf8mb4_bin',
             'connect_timeout': 10 # Giới hạn 10 giây để tránh Render bị timeout
         }
         

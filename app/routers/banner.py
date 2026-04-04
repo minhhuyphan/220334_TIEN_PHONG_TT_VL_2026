@@ -399,9 +399,8 @@ async def process_banner_task(task_id: str, user_id: int, request_data: dict):
                             "label": reference_labels[i] if i < len(reference_labels) else f"img_{i}"
                         })
 
-                # Trừ token và lưu lịch sử (bao gồm cả chi phí ảnh tham chiếu)
-                user_manager.update_token(user_id, -total_cost_per_banner)
-                banner_history.create(
+                # 1. Lưu lịch sử trước (the product)
+                history_id = banner_history.create(
                     user_id=user_id,
                     description=user_request,
                     aspect_ratio=aspect_ratio,
@@ -411,7 +410,13 @@ async def process_banner_task(task_id: str, user_id: int, request_data: dict):
                     token_cost=total_cost_per_banner,
                     reference_images=json.dumps(ref_images_data) if ref_images_data else None
                 )
-                generated_count += 1
+
+                if history_id:
+                    # 2. Chỉ trừ token nếu đã lưu lịch sử thành công
+                    user_manager.update_token(user_id, -total_cost_per_banner)
+                    generated_count += 1
+                else:
+                    print(f"⚠️ Lỗi: Không thể lưu banner_history cho user {user_id}. Token không bị trừ.")
 
             except Exception as e:
                 print(f"Lỗi tạo banner: {str(e)}")
