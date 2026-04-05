@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Palette, 
-  CreditCard, 
-  History as HistoryIcon, 
+import {
+  LayoutDashboard,
+  Palette,
+  CreditCard,
+  History as HistoryIcon,
   LogOut,
   Sparkles,
   Shield,
@@ -39,27 +39,26 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, onNavigate, onLogout, u
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar Content */}
-      <aside className={`fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <aside className={`fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
         <div className="p-6 flex items-center justify-between gap-3">
-          <div 
+          <div
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => onNavigate('/')}
           >
             <img src="/logo.png" alt="Logo" className="h-10 w-10 object-contain" />
             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-              AutoBanner
+              Zephyr
             </h1>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-600 md:hidden"
           >
@@ -76,21 +75,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, onNavigate, onLogout, u
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive 
-                    ? isAdmin
-                      ? 'bg-purple-50 text-purple-700 font-semibold'
-                      : 'bg-indigo-50 text-indigo-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                  ? isAdmin
+                    ? 'bg-purple-50 text-purple-700 font-semibold'
+                    : 'bg-indigo-50 text-indigo-700 font-semibold'
+                  : 'text-slate-600 hover:bg-slate-50'
+                  }`}
               >
-                <Icon className={`h-5 w-5 ${
-                  isActive 
-                    ? isAdmin 
-                      ? 'text-purple-600' 
-                      : 'text-indigo-600' 
-                    : 'text-slate-400'
-                }`} />
+                <Icon className={`h-5 w-5 ${isActive
+                  ? isAdmin
+                    ? 'text-purple-600'
+                    : 'text-indigo-600'
+                  : 'text-slate-400'
+                  }`} />
                 {item.label}
               </button>
             );

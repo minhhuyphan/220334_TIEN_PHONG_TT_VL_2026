@@ -166,6 +166,7 @@ const History: React.FC<HistoryProps> = ({ user, onNavigate }) => {
       navigate(targetRoute, { state });
     }
     
+    setSelectedBanner(null);
     toast.success('Đã tải lên thông tin banner cũ');
   };
 

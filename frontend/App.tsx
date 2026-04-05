@@ -21,8 +21,8 @@ const ComponentWrapper: React.FC<{
   [key: string]: any 
 }> = ({ component: Component, user, ...rest }) => {
   const navigate = useNavigate();
-  const handleNavigate = (route: string) => {
-    navigate(route);
+  const handleNavigate = (route: string, options?: any) => {
+    navigate(route, options);
   };
 
   return <Component user={user} currentUser={user} onNavigate={handleNavigate} {...rest} />;
@@ -33,8 +33,8 @@ const MainLayout: React.FC<{ user: User, onLogout: () => void }> = ({ user, onLo
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  const handleNavigate = (route: string) => {
-    navigate(route);
+  const handleNavigate = (route: string, options?: any) => {
+    navigate(route, options);
     setIsSidebarOpen(false); // Close sidebar after navigation on mobile
   };
 

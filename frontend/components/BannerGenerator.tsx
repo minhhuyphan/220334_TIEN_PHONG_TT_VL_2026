@@ -81,10 +81,15 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
       const data = state.regenerateData;
       setPrompt(data.request_description || '');
       
-      const preset = ASPECT_RATIO_PRESETS.find(p => p.label === data.aspect_ratio);
+      const normalizedRatio = data.aspect_ratio?.replace(/\s+/g, '');
+      const preset = ASPECT_RATIO_PRESETS.find(p => p.label.replace(/\s+/g, '') === normalizedRatio);
+      
       if (preset) {
         setWidth(preset.width);
         setHeight(preset.height);
+      } else {
+        // Fallback or attempt to parse from resolution if aspect_ratio label doesn't match
+        console.warn(`Aspect ratio ${data.aspect_ratio} not found in presets`);
       }
       
       if (data.reference_images_list) {
