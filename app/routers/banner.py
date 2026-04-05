@@ -233,6 +233,7 @@ async def process_banner_task(task_id: str, user_id: int, request_data: dict):
         user_request = request_data.get("user_request")
         reference_image_paths = request_data.get("reference_image_paths", [])  # Danh sách đường dẫn ảnh tham chiếu
         reference_labels = request_data.get("reference_labels", [])  # Danh sách nhãn tương ứng
+        is_public = request_data.get("is_public", True)
         
         # Get dynamic cost
         cost_per_image = int(config_manager.get_value("banner_cost", "1"))
@@ -408,7 +409,8 @@ async def process_banner_task(task_id: str, user_id: int, request_data: dict):
                     prompt=full_prompt_to_ai,
                     image_url=banner_url,
                     token_cost=total_cost_per_banner,
-                    reference_images=json.dumps(ref_images_data) if ref_images_data else None
+                    reference_images=json.dumps(ref_images_data) if ref_images_data else None,
+                    is_public=is_public
                 )
 
                 if history_id:
@@ -493,6 +495,7 @@ async def create_generate_task(
     reference_images: list[UploadFile] = File(default=[]),  # Danh sách ảnh tham chiếu mới
     reference_labels: list[str] = Form(default=[]),  # Danh sách nhãn cho ảnh tham chiếu mới
     existing_reference_images: Optional[str] = Form(None), # JSON string: [{"path": "...", "label": "..."}]
+    is_public: bool = Form(True),
     current_user: dict = Depends(get_current_user),
     config_manager: ConfigManager = Depends(get_config_manager),
     tasks_manager: TasksManager = Depends(get_tasks_manager)
@@ -577,7 +580,8 @@ async def create_generate_task(
         "number": number,
         "user_request": user_request,
         "reference_image_paths": reference_image_paths,  # Danh sách đường dẫn
-        "reference_labels": valid_labels  # Danh sách nhãn tương ứng
+        "reference_labels": valid_labels,  # Danh sách nhãn tương ứng
+        "is_public": is_public
     }
     
     tasks_manager.create_task(task_id, user_id, json.dumps(request_data))

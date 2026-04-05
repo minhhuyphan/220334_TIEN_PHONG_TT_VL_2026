@@ -14,7 +14,9 @@ import {
   Sparkles as SparklesIcon, 
   Image as ImageIcon,
   Mic,
-  MicOff
+  MicOff,
+  Globe,
+  Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -65,6 +67,7 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionQuery, setSuggestionQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -352,6 +355,7 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
       formData.append('width', width.toString());
       formData.append('height', height.toString());
       formData.append('number', count.toString());
+      formData.append('is_public', isPublic.toString());
       
       // Thêm thông tin về các ảnh tham chiếu vào prompt để AI dễ nhận diện
       let enhancedPrompt = prompt;
@@ -670,23 +674,54 @@ const BannerGenerator: React.FC<BannerGeneratorProps> = ({ user, refreshUser }) 
                 <CheckCircle2 className="h-3 w-3 text-green-500" />
                 <span>Số dư: <strong>{user.tokens} tokens</strong></span>
               </div>
-              <button 
-                type="submit"
-                disabled={isLoading || !prompt.trim() || user.tokens < totalCost}
-                className="w-full sm:w-auto bg-indigo-600 text-white px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-100 order-1 sm:order-2"
-              >
-                {isLoading ? (
-                  <>
-                    <RefreshCcw className="h-5 w-5 animate-spin" />
-                    Đang tạo...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="h-5 w-5" />
-                    Tạo Banner
-                  </>
-                )}
-              </button>
+
+              {/* Public/Private Toggle */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto order-1 sm:order-2">
+                <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setIsPublic(true)}
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                      isPublic 
+                        ? 'bg-white text-indigo-600 shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    Công khai
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsPublic(false)}
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                      !isPublic 
+                        ? 'bg-white text-amber-600 shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Lock className="h-3.5 w-3.5" />
+                    Riêng tư
+                  </button>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={isLoading || !prompt.trim() || user.tokens < totalCost}
+                  className="w-full sm:w-auto bg-indigo-600 text-white px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-100"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCcw className="h-5 w-5 animate-spin" />
+                      Đang tạo...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="h-5 w-5" />
+                      Tạo Banner
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
 

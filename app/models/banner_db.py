@@ -122,7 +122,12 @@ class BannerHistoryManager(DBConnection):
             (user_id, request_description, aspect_ratio, resolution, prompt_used, image_url, reference_images, token_cost, is_public)
             VALUES ({self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p}, {self.p})
         """
-        self.cursor.execute(sql, (user_id, description, aspect_ratio, resolution, prompt, image_url, reference_images, token_cost, 1 if is_public else 0))
+        # Ensure is_public is treated as boolean even if passed as string "false"
+        val_is_public = 1
+        if is_public is False or str(is_public).lower() == 'false' or is_public == 0 or str(is_public) == '0':
+            val_is_public = 0
+            
+        self.cursor.execute(sql, (user_id, description, aspect_ratio, resolution, prompt, image_url, reference_images, token_cost, val_is_public))
         self.commit()
         return self.cursor.lastrowid
 
