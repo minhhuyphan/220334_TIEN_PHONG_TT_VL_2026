@@ -184,7 +184,8 @@ def init_db():
     except Exception as e:
         print(f"[ERROR] Fatal error during init_db: {e}")
 
-
+def check_and_migrate_db():
+    """Kiểm tra và migrate DB an toàn — thêm cột mới nếu chưa tồn tại."""
     try:
         init_db()
         
