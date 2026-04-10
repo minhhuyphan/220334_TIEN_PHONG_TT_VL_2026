@@ -666,7 +666,16 @@ def update_index_html_seo(settings: SeoSettings):
 def extract_seo_from_index_html() -> dict:
     path = "frontend/index.html"
     if not os.path.exists(path):
-         return {}
+         return {
+            "site_title": "Zephyr Studio",
+            "description": "Nền tảng tạo banner quảng cáo AI chuyên nghiệp",
+            "keywords": "banner ai, tạo banner, quảng cáo",
+            "author": "Zephyr",
+            "favicon_url": "/favicon.ico",
+            "logo_url": "/logo.png",
+            "canonical_url": "/",
+            "robots": "index, follow"
+         }
          
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
@@ -736,6 +745,8 @@ async def update_seo_settings(
         config_manager.set_value("seo_settings", json.dumps(settings.dict()))
         
         return {"message": "SEO settings updated successfully in database"}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error updating SEO: {e}")
         raise HTTPException(status_code=500, detail=str(e))
