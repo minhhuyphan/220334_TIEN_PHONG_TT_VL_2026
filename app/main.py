@@ -26,10 +26,16 @@ origins = [
     "https://220334-tien-phong-tt-vl-2026.vercel.app"
 ]
 
-# Thêm các domain từ biến môi trường nếu có
+# Thêm các domain từ biến môi trường và chuẩn hóa
 frontend_url = os.getenv("FRONTEND_URL")
 if frontend_url:
-    origins.append(frontend_url)
+    # Đảm bảo không có dấu gạch chéo ở cuối để khớp chính xác với Origin header
+    clean_url = frontend_url.rstrip("/")
+    if clean_url not in origins:
+        origins.append(clean_url)
+    
+    # Thêm cả bản gốc nếu cần, nhưng chuẩn nhất là không có slash
+    # origins.append(frontend_url) 
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,6 +43,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Cấu hình thư mục tĩnh để phục vụ file banner
