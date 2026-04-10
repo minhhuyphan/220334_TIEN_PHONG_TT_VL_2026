@@ -12,7 +12,62 @@ export const apiService = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token: idToken })
     });
-    if (!response.ok) throw new Error('Login failed');
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Login failed');
+    }
+    return response.json();
+  },
+
+  async register(data: any): Promise<any> {
+    const response = await fetch(`${__API_URL__}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Registration failed');
+    }
+    return response.json();
+  },
+
+  async login(data: any): Promise<AuthResponse> {
+    const response = await fetch(`${__API_URL__}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Login failed');
+    }
+    return response.json();
+  },
+
+  async forgotPassword(account: string): Promise<any> {
+    const response = await fetch(`${__API_URL__}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ account })
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Request failed');
+    }
+    return response.json();
+  },
+
+  async resetPassword(data: any): Promise<any> {
+    const response = await fetch(`${__API_URL__}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Reset failed');
+    }
     return response.json();
   },
 

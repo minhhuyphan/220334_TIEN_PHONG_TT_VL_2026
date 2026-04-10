@@ -43,6 +43,13 @@ class Settings:
     CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "dgxfqh7qx")
     CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+    
+    # MAIL SETTINGS
+    MAIL_HOST = os.getenv("MAIL_HOST", "smtp.gmail.com")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
+    MAIL_USER = os.getenv("MAIL_USER")
+    MAIL_PASS = os.getenv("MAIL_PASS")
+    MAIL_FROM = os.getenv("MAIL_FROM")
 
     # MODEL PROVIDERS
     IMAGE_MODEL_PROVIDER = os.getenv("IMAGE_MODEL_PROVIDER", "google")
@@ -64,6 +71,7 @@ class Settings:
     NUM_DOC = int(os.getenv("NUM_DOC", "3"))
     NUMBER_COUNT_FOR_MAX = int(os.getenv("NUMBER_COUNT_FOR_MAX", "3"))
     ALLOW_ORIGINS = os.getenv("ALLOW_ORIGINS", '["*"]')
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
     TITLE_APP = os.getenv("TITLE_APP", "API BANNER")
     VERSION_APP = os.getenv("VERSION_APP", "v1")
     NAME_WEB = os.getenv("NAME_WEB", "AUTOBANNER")

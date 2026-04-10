@@ -69,11 +69,15 @@ def init_db():
     CREATE TABLE IF NOT EXISTS users (
         id {pk_type} PRIMARY KEY {auto_inc},
         google_id VARCHAR(255) UNIQUE,
+        username VARCHAR(255) UNIQUE,
+        password_hash {text_type},
         email VARCHAR(255) UNIQUE NOT NULL,
         full_name VARCHAR(255),
         avatar_url {text_type},
         tokens REAL DEFAULT 5,
         is_admin {bool_type} DEFAULT 0,
+        forgot_password_count INTEGER DEFAULT 0,
+        last_forgot_password_at DATETIME,
         created_at DATETIME DEFAULT {ts_default},
         updated_at DATETIME DEFAULT {ts_default}
     )
@@ -180,8 +184,11 @@ def check_and_migrate_db():
     """Kiểm tra và migrate DB an toàn — thêm cột mới nếu chưa tồn tại."""
     init_db()
     
-    conn = get_db_connection()
     db_type = getattr(settings, "DB_TYPE", "sqlite").lower()
+    text_type = "LONGTEXT" if db_type == "mysql" else "TEXT"
+    bool_type = "BOOLEAN" if db_type == "mysql" else "BOOLEAN"
+    
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True) if db_type == "mysql" else conn.cursor()
     
     try:
@@ -233,6 +240,39 @@ def check_and_migrate_db():
             print("✅ Migration: Đã thêm cột 'is_hidden' vào banner_history")
         else:
             print("✅ Migration: Cột 'is_hidden' đã tồn tại")
+
+        # Migration cho Auth mới: username, password_hash, forgot_password_count, last_forgot_password_at
+        auth_cols = {
+            "username": "VARCHAR(255) UNIQUE",
+            "password_hash": text_type,
+            "forgot_password_count": "INTEGER DEFAULT 0",
+            "last_forgot_password_at": "DATETIME"
+        }
+        
+        for col_name, col_def in auth_cols.items():
+            if db_type == "mysql":
+                cursor.execute(f"SELECT COUNT(*) as cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = '{col_name}'")
+                row = cursor.fetchone()
+                exists = (row['cnt'] if isinstance(row, dict) else row[0]) > 0
+            else:
+                cursor.execute("PRAGMA table_info(users)")
+                exists = col_name in [r[1] for r in cursor.fetchall()]
+            
+            if not exists:
+                if db_type == "mysql" and "UNIQUE" in col_def:
+                    # Trong MySQL, tách riêng việc ADD COLUMN và ADD UNIQUE
+                    base_def = col_def.replace(" UNIQUE", "")
+                    cursor.execute(f"ALTER TABLE users ADD COLUMN {col_name} {base_def}")
+                    try:
+                        cursor.execute(f"ALTER TABLE users ADD UNIQUE ({col_name})")
+                    except:
+                        pass # Nếu đã có index thì thôi
+                else:
+                    cursor.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_def}")
+                
+                print(f"✅ Migration: Đã thêm cột '{col_name}' vào users")
+                if db_type != "mysql": conn.commit()
+
     except Exception as e:
         print(f"⚠️ Migration warning: {e}")
     finally:

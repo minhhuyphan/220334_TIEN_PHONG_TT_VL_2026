@@ -252,11 +252,34 @@ class UserManager(DBConnection):
         row = self.cursor.fetchone()
         return dict(row) if row else None
 
+    def get_by_username(self, username):
+        self.cursor.execute(f"SELECT * FROM users WHERE username = {self.p}", (username,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+
     def create(self, email, full_name, google_id=None, avatar_url=None):
         sql = f"INSERT INTO users (email, full_name, google_id, avatar_url, tokens) VALUES ({self.p}, {self.p}, {self.p}, {self.p}, 5)"
         self.cursor.execute(sql, (email, full_name, google_id, avatar_url))
         self.commit()
         return self.cursor.lastrowid
+
+    def create_with_password(self, username, email, full_name, password_hash):
+        sql = f"INSERT INTO users (username, email, full_name, password_hash, tokens) VALUES ({self.p}, {self.p}, {self.p}, {self.p}, 5)"
+        self.cursor.execute(sql, (username, email, full_name, password_hash))
+        self.commit()
+        return self.cursor.lastrowid
+
+    def update_forgot_password_stats(self, user_id, count, last_at):
+        sql = f"UPDATE users SET forgot_password_count = {self.p}, last_forgot_password_at = {self.p} WHERE id = {self.p}"
+        self.cursor.execute(sql, (count, last_at, user_id))
+        self.commit()
+        return self.cursor.rowcount
+
+    def reset_password(self, user_id, new_password_hash):
+        sql = f"UPDATE users SET password_hash = {self.p}, forgot_password_count = 0 WHERE id = {self.p}"
+        self.cursor.execute(sql, (new_password_hash, user_id))
+        self.commit()
+        return self.cursor.rowcount
 
     def update_token(self, user_id, tokens_to_add):
         sql = f"UPDATE users SET tokens = tokens + {self.p}, updated_at = CURRENT_TIMESTAMP WHERE id = {self.p}"

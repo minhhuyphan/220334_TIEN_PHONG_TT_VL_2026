@@ -9,6 +9,9 @@ import BannerGenerator from './components/BannerGenerator';
 import Billing from './components/Billing';
 import History from './components/History';
 import Login from './components/Login';
+import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import AdminPanel from './components/AdminPanel';
 import HomePage from './components/HomePage';
 import CustomPage from './components/CustomPage';
@@ -147,11 +150,15 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Khi chưa đăng nhập: hiển thị trang chủ public
+  // Khi chưa đăng nhập: hiển thị trang chủ public và các trang auth
   if (!user) {
     return (
       <Routes>
         <Route path="/" element={<HomePage onLoginSuccess={handleLogin} onNavigate={navigate} />} />
+        <Route path="/login" element={<Login onLoginSuccess={handleLogin} />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/page/:slug" element={<CustomPage user={null} onNavigate={navigate} />} />
         <Route path="/app/page/:slug" element={<CustomPage user={null} onNavigate={navigate} />} />
         <Route path="*" element={<Navigate to="/" replace />} />

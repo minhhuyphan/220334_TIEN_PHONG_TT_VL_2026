@@ -1,59 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
-import { User } from '../types';
+import { toast } from 'react-hot-toast';
 
-declare const __GOOGLE_CLIENT_ID__: string;
-
-interface LoginProps {
-  onLoginSuccess: (user: User, token: string) => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+const Register: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ account: '', password: '' });
+  const [formData, setFormData] = useState({
+    full_name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirm_password: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    /* @ts-ignore */
-    if (window.google) {
-      /* @ts-ignore */
-      window.google.accounts.id.initialize({
-        client_id: __GOOGLE_CLIENT_ID__,
-        callback: handleGoogleResponse
-      });
-      /* @ts-ignore */
-      window.google.accounts.id.renderButton(
-        document.getElementById("googleBtn"),
-        { theme: "outline", size: "large", shape: "pill", width: 320 }
-      );
-    }
-  }, []);
-
-  const handleGoogleResponse = async (response: any) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await apiService.loginWithGoogle(response.credential);
-      onLoginSuccess(data.user, data.access_token);
-    } catch (err: any) {
-      setError(err.message || "Google login failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.password !== formData.confirm_password) {
+      setError("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
-      const data = await apiService.login(formData);
-      onLoginSuccess(data.user, data.access_token);
+      await apiService.register({
+        full_name: formData.full_name,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
+      toast.success("Đăng ký thành công! Hãy đăng nhập.");
+      navigate('/login');
     } catch (err: any) {
-      setError(err.message || "Đăng nhập thất bại");
+      setError(err.message || "Đăng ký thất bại");
     } finally {
       setIsLoading(false);
     }
@@ -64,10 +47,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       <div className="w-full max-w-md animate-in fade-in zoom-in duration-500">
         <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative">
           <button 
-            onClick={() => navigate('/')} 
+            onClick={() => navigate('/login')} 
             className="absolute top-6 right-6 p-2 rounded-full bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
 
           <div className="p-10 md:p-12">
@@ -75,9 +58,9 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               <div className="mb-4">
                 <img src="/logo.png" alt="Logo" className="h-16 w-16 object-contain" />
               </div>
-              <h1 className="text-2xl font-bold text-[#1e293b] mb-1">Đăng nhập</h1>
+              <h1 className="text-2xl font-bold text-[#1e293b] mb-1">Tạo tài khoản</h1>
               <p className="text-slate-500 text-center text-sm">
-                Dùng tài khoản của bạn để tạo banner AI ngay
+                Đăng ký để trải nghiệm công nghệ banner AI
               </p>
             </div>
 
@@ -85,10 +68,30 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               <div>
                 <input
                   type="text"
-                  placeholder="Tên đăng nhập hoặc Email"
+                  placeholder="Họ và tên"
                   className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-slate-700"
-                  value={formData.account}
-                  onChange={(e) => setFormData({ ...formData, account: e.target.value })}
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  placeholder="Tên đăng nhập (Username)"
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-slate-700"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email (Để khôi phục mật khẩu)"
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-slate-700"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
@@ -113,14 +116,25 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                   )}
                 </button>
               </div>
-              
-              <div className="flex justify-end">
-                <button 
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Xác nhận mật khẩu"
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-slate-700"
+                  value={formData.confirm_password}
+                  onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
+                  required
+                />
+                <button
                   type="button"
-                  onClick={() => navigate('/forgot-password')} 
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
                 >
-                  Quên mật khẩu?
+                  {showConfirmPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88 3.62 3.62"/><path d="M2 2l20 20"/><path d="M10.37 4.37a9 9 0 0 1 8.87 5.25"/><path d="M16 4v1.5"/><path d="m15.5 15.5 1 1"/><path d="M22 12c-1.5 3-4.5 5-8 5-1.08 0-2.13-.19-3.1-.53"/><path d="M6.33 6.33Q4.17 7.96 2 12c1.5 3 4.5 5 8 5"/><path d="M8 8q.5-.5 1-1"/><path d="M14.12 14.12q-.5.5-1.12.88"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
                 </button>
               </div>
 
@@ -129,22 +143,9 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 disabled={isLoading}
                 className="w-full py-4 bg-indigo-600 hover:bg-slate-900 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
               >
-                {isLoading ? "Đang xử lý..." : "Đăng nhập"}
+                {isLoading ? "Đang xử lý..." : "Đăng ký ngay"}
               </button>
             </form>
-
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-100"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-slate-400 font-medium">Hoặc</span>
-              </div>
-            </div>
-
-            <div className="flex justify-center mb-8">
-              <div id="googleBtn" className="w-full flex justify-center"></div>
-            </div>
 
             {error && (
               <div className="mb-6 text-red-500 text-sm bg-red-50 p-3 rounded-xl border border-red-100 text-center">
@@ -154,33 +155,20 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
             <div className="text-center">
               <p className="text-slate-500 text-sm">
-                Chưa có tài khoản?{" "}
+                Đã có tài khoản?{" "}
                 <button 
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/login')}
                   className="font-bold text-indigo-600 hover:underline"
                 >
-                  Đăng ký ngay
+                  Đăng nhập
                 </button>
-              </p>
-            </div>
-
-            <div className="mt-10 pt-6 border-t border-slate-50 text-center">
-              <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold mb-1">
-                ZEPHYR · MST 1801526082
-              </p>
-              <p className="text-[10px] text-slate-400">
-                Bảo mật thông tin theo chính sách Google OAuth 2.0
               </p>
             </div>
           </div>
         </div>
-        
-        <p className="mt-8 text-center text-slate-500 text-[10px] uppercase tracking-widest opacity-60">
-          © {new Date().getFullYear()} Adhightech Ltd. Co. - AutoBanner.
-        </p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Register;

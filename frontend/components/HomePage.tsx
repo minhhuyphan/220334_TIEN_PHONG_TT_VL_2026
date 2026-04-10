@@ -251,12 +251,12 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
             >Bảng điều khiển</button>
           ) : (
             <>
-              <button className="nav-links-container" id="navbar-login-btn" onClick={() => setShowLoginModal(true)}
+              <button className="nav-links-container" id="navbar-login-btn" onClick={() => onNavigate && onNavigate('/login')}
                 style={{ color: scrolled ? TXT2 : '#fff', fontSize: '14px', fontWeight: 500, background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px 14px', borderRadius: '24px', transition: 'all 0.2s' }}
               >Đăng nhập</button>
-              <button className="btn-violet" onClick={() => setShowLoginModal(true)}
+              <button className="btn-violet" onClick={() => onNavigate && onNavigate('/login')}
                 style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: '#fff', fontWeight: 700, fontSize: '13px', padding: '8px 18px', borderRadius: '24px', border: 'none', cursor: 'pointer', transition: 'all 0.25s', boxShadow: '0 4px 18px rgba(124,58,237,0.35)', whiteSpace: 'nowrap' }}
-              >Tạo ngay</button>
+              >Bắt đầu ngay</button>
             </>
           )}
         </div>
@@ -302,7 +302,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
           ))}
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             {renderDynamic(config.hero.btn_primary, '#fff', (text, color) => (
-              <button className="btn-violet" onClick={() => user ? (onNavigate && onNavigate('/generate')) : setShowLoginModal(true)}
+              <button className="btn-violet" onClick={() => user ? (onNavigate && onNavigate('/generate')) : onNavigate && onNavigate('/login')}
                 style={{ background: `linear-gradient(135deg, ${V}, #6D28D9)`, color: color, fontWeight: 700, fontSize: '16px', padding: '14px 34px', borderRadius: '32px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(124,58,237,0.5)', transition: 'all 0.3s' }}
               >✦ {text}</button>
             ))}
@@ -386,7 +386,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
                 style={{ background: 'transparent', color: V, fontWeight: 600, fontSize: '15px', padding: '13px 28px', borderRadius: '28px', border: `1.5px solid ${V}`, cursor: 'pointer', transition: 'all 0.2s' }}
               >✦ Thử công cụ ngay →</button>
             ) : (
-              <button className="btn-ghost" onClick={() => setShowLoginModal(true)}
+              <button className="btn-ghost" onClick={() => onNavigate && onNavigate('/login')}
                 style={{ background: 'transparent', color: V, fontWeight: 600, fontSize: '15px', padding: '13px 28px', borderRadius: '28px', border: `1.5px solid ${V}`, cursor: 'pointer', transition: 'all 0.2s' }}
               >✦ Dùng thử miễn phí →</button>
             )}
@@ -480,7 +480,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
               style={{ background: '#fff', color: V, fontWeight: 700, fontSize: '17px', padding: '16px 46px', borderRadius: '36px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', transition: 'all 0.3s' }}
             >✦ Bảng điều khiển</button>
           ) : (
-            <button id="about-cta-btn" className="btn-violet" onClick={() => setShowLoginModal(true)}
+            <button id="about-cta-btn" className="btn-violet" onClick={() => onNavigate && onNavigate('/login')}
               style={{ background: '#fff', color: V, fontWeight: 700, fontSize: '17px', padding: '16px 46px', borderRadius: '36px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', transition: 'all 0.3s' }}
             >✦ Bắt đầu ngay</button>
           )}
@@ -514,60 +514,22 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginSuccess, user, onNavigate })
                 {page.title}
               </a>
             ))}
-            {user ? (
-              <button onClick={() => onNavigate && onNavigate('/dashboard')} style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Bảng điều khiển</button>
-            ) : (
-              <button onClick={() => setShowLoginModal(true)} style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Đăng nhập</button>
-            )}
-          </div>
-          <div style={{ width: '100%', borderTop: '1px solid rgba(124,58,237,0.05)', marginTop: '8px', paddingTop: '16px', textAlign: 'center' }}>
-            <p style={{ color: TXT2, fontSize: '11px', fontStyle: 'italic' }}>
-              Hệ thống đang trong giai đoạn thử nghiệm (Beta). Mọi giao dịch phục vụ mục đích trải nghiệm công nghệ.
-            </p>
-          </div>
-        </div>
-      </footer>
-
-      {/* LOGIN MODAL */}
-      {showLoginModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowLoginModal(false); }}
-        >
-          <div style={{ width: '100%', maxWidth: '420px', background: '#fff', border: '1px solid rgba(124,58,237,0.15)', borderRadius: '28px', boxShadow: '0 40px 80px rgba(0,0,0,0.2)' }}>
-            <div style={{ padding: '40px' }}>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
-                <button id="modal-close-btn" onClick={() => setShowLoginModal(false)}
-                  style={{ color: TXT2, background: '#f5f3ff', border: 'none', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '50%', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >✕</button>
-              </div>
-              <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-                <img src="/logo.png" alt="Zephyr" style={{ height: '52px', width: '52px', objectFit: 'contain', marginBottom: '14px' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                <h2 style={{ fontSize: '22px', fontWeight: 700, color: TXT, marginBottom: '8px' }}>Đăng nhập</h2>
-                <p style={{ color: TXT2, fontSize: '14px' }}>Dùng tài khoản Google để tạo banner AI ngay</p>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                <div id="homeGoogleBtn" ref={googleBtnRef} style={{ display: 'flex', justifyContent: 'center' }} />
-              </div>
-              {loginLoading && (
-                <div style={{ textAlign: 'center', color: TXT2, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  <div style={{ width: '14px', height: '14px', border: `2px solid rgba(124,58,237,0.2)`, borderTopColor: V, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                  Đang xác thực...
-                </div>
+              {user ? (
+                <button onClick={() => onNavigate && onNavigate('/dashboard')} style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Bảng điều khiển</button>
+              ) : (
+                <button onClick={() => onNavigate && onNavigate('/login')} style={{ color: V, fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Đăng nhập</button>
               )}
-              {loginError && (
-                <div style={{ color: '#dc2626', fontSize: '14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '12px', textAlign: 'center', marginTop: '8px' }}>{loginError}</div>
-              )}
-              <div style={{ marginTop: '24px', paddingTop: '22px', borderTop: '1px solid rgba(124,58,237,0.08)', textAlign: 'center' }}>
-                <p style={{ fontSize: '11px', color: TXT2, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '6px' }}>Zephyr · MST 1801526082</p>
-                <p style={{ fontSize: '12px', color: TXT2 }}>Bảo mật thông tin theo chính sách Google OAuth 2.0</p>
-              </div>
+            </div>
+            <div style={{ width: '100%', borderTop: '1px solid rgba(124,58,237,0.05)', marginTop: '8px', paddingTop: '16px', textAlign: 'center' }}>
+              <p style={{ color: TXT2, fontSize: '11px', fontStyle: 'italic' }}>
+                Hệ thống đang trong giai đoạn thử nghiệm (Beta). Mọi giao dịch phục vụ mục đích trải nghiệm công nghệ.
+              </p>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
+        </footer>
+      </div>
+    );
+  };
 
 // Gallery Card — light version
 const GalleryCard: React.FC<{ banner: PublicBannerItem; index: number }> = ({ banner, index }) => {

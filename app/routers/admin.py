@@ -724,14 +724,18 @@ async def update_seo_settings(
 ):
     """Update SEO settings (DB + HTML)"""
     try:
-        # 1. Update HTML
-        update_index_html_seo(settings)
+        # 1. Update HTML (Optional - don't crash if fails)
+        try:
+            update_index_html_seo(settings)
+        except Exception as html_err:
+            logger.warning(f"Could not update index.html SEO: {html_err}")
+            # We continue because DB save is more important
         
-        # 2. Save to DB
+        # 2. Save to DB (Primary source of truth)
         import json
         config_manager.set_value("seo_settings", json.dumps(settings.dict()))
         
-        return {"message": "SEO settings updated successfully"}
+        return {"message": "SEO settings updated successfully in database"}
     except Exception as e:
         logger.error(f"Error updating SEO: {e}")
         raise HTTPException(status_code=500, detail=str(e))
