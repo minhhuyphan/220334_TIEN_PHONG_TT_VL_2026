@@ -174,11 +174,11 @@ def init_db():
         cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Cơ Bản", 50, 100000))
         cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Phổ Biến", 110, 200000))
         cursor.execute(f"INSERT INTO packages (name, tokens, amount_vnd) VALUES ({placeholder}, {placeholder}, {placeholder})", ("Gói Chuyên Nghiệp", 300, 500000))
-        print("✅ Added default packages.")
+        print("[OK] Added default packages.")
     
     conn.commit()
     conn.close()
-    print(f"✅ Database initialized ({db_type.upper()}). Persistence is now active.")
+    print(f"[OK] Database initialized ({db_type.upper()}). Persistence is now active.")
 
 def check_and_migrate_db():
     """Kiểm tra và migrate DB an toàn — thêm cột mới nếu chưa tồn tại."""
@@ -213,9 +213,9 @@ def check_and_migrate_db():
             cursor.execute("UPDATE banner_history SET is_public = 1 WHERE is_public IS NULL")
             if db_type != "mysql":
                 conn.commit()
-            print("✅ Migration: Đã thêm cột 'is_public' vào banner_history")
+            print("[OK] Migration: Đã thêm cột 'is_public' vào banner_history")
         else:
-            print("✅ Migration: Cột 'is_public' đã tồn tại")
+            print("[OK] Migration: Cột 'is_public' đã tồn tại")
 
         # Migration: Thêm cột is_hidden vào banner_history nếu chưa có
         if db_type == "mysql":
@@ -237,9 +237,9 @@ def check_and_migrate_db():
             cursor.execute("UPDATE banner_history SET is_hidden = 0 WHERE is_hidden IS NULL")
             if db_type != "mysql":
                 conn.commit()
-            print("✅ Migration: Đã thêm cột 'is_hidden' vào banner_history")
+            print("[OK] Migration: Đã thêm cột 'is_hidden' vào banner_history")
         else:
-            print("✅ Migration: Cột 'is_hidden' đã tồn tại")
+            print("[OK] Migration: Cột 'is_hidden' đã tồn tại")
 
         # Migration cho Auth mới: username, password_hash, forgot_password_count, last_forgot_password_at
         auth_cols = {
@@ -270,11 +270,11 @@ def check_and_migrate_db():
                 else:
                     cursor.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_def}")
                 
-                print(f"✅ Migration: Đã thêm cột '{col_name}' vào users")
+                print(f"[OK] Migration: Đã thêm cột '{col_name}' vào users")
                 if db_type != "mysql": conn.commit()
 
     except Exception as e:
-        print(f"⚠️ Migration warning: {e}")
+        print(f"[WARN] Migration warning: {e}")
     finally:
         conn.close()
 

@@ -19,17 +19,17 @@ def download_fonts():
         os.makedirs(FONTS_DIR)
     
     downloaded_fonts = {}
-    print("📂 Kiểm tra và tải font chữ hỗ trợ tiếng Việt...")
+    print("[FONT] Kiểm tra và tải font chữ hỗ trợ tiếng Việt...")
     
     for font_name, url in GOOGLE_FONTS.items():
         font_path = os.path.join(FONTS_DIR, f"{font_name}.ttf")
         if not os.path.exists(font_path):
             try:
-                print(f"  ⬇️ Đang tải {font_name}...")
+                print(f"  [DOWN] Đang tải {font_name}...")
                 urllib.request.urlretrieve(url, font_path)
-                print(f"  ✅ Đã tải: {font_name}")
+                print(f"  [OK] Đã tải: {font_name}")
             except Exception as e:
-                print(f"  ❌ Lỗi tải font {font_name}: {e}")
+                print(f"  [ERROR] Lỗi tải font {font_name}: {e}")
                 continue
         downloaded_fonts[font_name] = font_path
     

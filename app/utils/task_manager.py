@@ -31,7 +31,7 @@ class TaskManagerRAM:
     async def start_worker(self):
         if self.worker_task is None:
             self.worker_task = asyncio.create_task(self._worker_loop())
-            print("🚀 RAM Task Worker started.")
+            print("[START] RAM Task Worker started.")
 
     async def _worker_loop(self):
         while True:
@@ -41,7 +41,7 @@ class TaskManagerRAM:
                 if not task_info:
                     # Task not found in RAM (e.g. after server restart)
                     # Mark as failed in DB so frontend stops polling
-                    print(f"⚠️ Task {task_id} not found in RAM, marking as failed in DB")
+                    print(f"[WARN] Task {task_id} not found in RAM, marking as failed in DB")
                     try:
                         from app.models.banner_db import TasksManager
                         tm = TasksManager()
@@ -57,7 +57,7 @@ class TaskManagerRAM:
                 
             except Exception as e:
                 import traceback
-                print(f"❌ Error in RAM worker for task {task_id}: {e}")
+                print(f"[ERROR] Error in RAM worker for task {task_id}: {e}")
                 traceback.print_exc()
                 # CRITICAL: Update DB to 'failed' so frontend stops polling!
                 try:

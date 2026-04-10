@@ -256,7 +256,7 @@ async def process_banner_task(task_id: str, user_id: int, request_data: dict):
         passed_banner = []
         
         # 1. Phân tích yêu cầu
-        print("🔍 Đang phân tích yêu cầu...")
+        print("[INFO] Đang phân tích yêu cầu...")
         analyzer = PromptAnalyzer(LLM().get_llm(settings.LLM_PROVIDER)).get_chain()
         conditions = await analyzer.ainvoke({"description": user_request})
         text_elements = conditions.text_elements if hasattr(conditions, 'text_elements') and conditions.text_elements else []

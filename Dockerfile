@@ -12,6 +12,7 @@ COPY . .
 # Set environment variables
 ENV HOST=0.0.0.0
 ENV PORT=8080
+ENV PYTHONUTF8=1
 
 # Command to run the application
 CMD ["sh", "-c", "uvicorn app.main:app --host $HOST --port $PORT"]

@@ -87,10 +87,10 @@ async def startup_event():
                 ('failed', 'Server restarted. Please try again.', status)
             )
         conn.commit()
-        print("✅ Startup: Reset stuck tasks to 'failed'")
+        print("[OK] Startup: Reset stuck tasks to 'failed'")
         tm.close()
     except Exception as e:
-        print(f"⚠️ Startup cleanup warning: {e}")
+        print(f"[WARN] Startup cleanup warning: {e}")
     
     await ram_task_manager.start_worker()
 
