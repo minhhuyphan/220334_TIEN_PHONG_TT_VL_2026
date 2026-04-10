@@ -123,3 +123,5 @@ uvicorn==0.32.1
 websockets==15.0.1
 yarl==1.18.3
 zstandard==0.23.0
+passlib==1.7.4
+bcrypt==4.0.1
