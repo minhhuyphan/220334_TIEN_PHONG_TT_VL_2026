@@ -23,6 +23,7 @@ origins = [
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "https://220334-tien-phong-tt-vl-2026.vercel.app"
 ]
 
 # Thêm các domain từ biến môi trường nếu có
