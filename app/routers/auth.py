@@ -211,10 +211,13 @@ async def forgot_password(
     from app.utils.email_utils import send_reset_email
     email_sent = send_reset_email(user['email'], reset_token)
     
+    # Chuẩn hóa base_url cho mock_link
+    base_url = settings.FRONTEND_URL.rstrip('/') if settings.FRONTEND_URL else "http://localhost:3000"
+    
     return {
         "message": "Link khôi phục mật khẩu đã được gửi tới email của bạn.",
         "email_sent": email_sent,
-        "mock_link": f"http://localhost:3000/reset-password?token={reset_token}" if not email_sent else None
+        "mock_link": f"{base_url}/reset-password?token={reset_token}" if not email_sent else None
     }
 
 class ResetPasswordRequest(BaseModel):
