@@ -1,7 +1,15 @@
 import os
 import urllib.request
+import tempfile
 
-FONTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "assets", "fonts")
+try:
+    FONTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "assets", "fonts")
+    if not os.path.exists(FONTS_DIR):
+        os.makedirs(FONTS_DIR)
+except OSError:
+    FONTS_DIR = os.path.join(tempfile.gettempdir(), "fonts")
+    if not os.path.exists(FONTS_DIR):
+        os.makedirs(FONTS_DIR)
 
 # Danh sách một số font Google Font hỗ trợ tiếng Việt tốt
 GOOGLE_FONTS = {

@@ -61,7 +61,13 @@ def get_tasks_manager():
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BASE_DIR = os.path.join(project_root, "banners")
 if not os.path.exists(BASE_DIR):
-    os.makedirs(BASE_DIR)
+    try:
+        os.makedirs(BASE_DIR)
+    except OSError:
+        import tempfile
+        BASE_DIR = os.path.join(tempfile.gettempdir(), "banners")
+        if not os.path.exists(BASE_DIR):
+            os.makedirs(BASE_DIR)
 
 from app.utils.url import fix_banner_url
 

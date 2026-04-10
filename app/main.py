@@ -42,14 +42,26 @@ app.add_middleware(
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BANNERS_DIR = os.path.join(project_root, "banners")
 if not os.path.exists(BANNERS_DIR):
-    os.makedirs(BANNERS_DIR)
+    try:
+        os.makedirs(BANNERS_DIR)
+    except OSError:
+        import tempfile
+        BANNERS_DIR = os.path.join(tempfile.gettempdir(), "banners")
+        if not os.path.exists(BANNERS_DIR):
+            os.makedirs(BANNERS_DIR)
 
 app.mount("/banners", StaticFiles(directory=BANNERS_DIR), name="banners")
 
 # Ensure download dir exists for generated banners
 DOWNLOAD_DIR = os.path.join(project_root, "utils", "download")
 if not os.path.exists(DOWNLOAD_DIR):
-    os.makedirs(DOWNLOAD_DIR)
+    try:
+        os.makedirs(DOWNLOAD_DIR)
+    except OSError:
+        import tempfile
+        DOWNLOAD_DIR = os.path.join(tempfile.gettempdir(), "utils_download")
+        if not os.path.exists(DOWNLOAD_DIR):
+            os.makedirs(DOWNLOAD_DIR)
 
 from app.routers import file_upload, banner, auth, payment, admin, pages
 
