@@ -125,3 +125,4 @@ yarl==1.18.3
 zstandard==0.23.0
 passlib==1.7.4
 bcrypt==4.0.1
+email-validator==2.2.0
