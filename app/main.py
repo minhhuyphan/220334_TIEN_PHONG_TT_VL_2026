@@ -70,7 +70,10 @@ from app.utils.database import check_and_migrate_db
 
 @app.on_event("startup")
 async def startup_event():
-    check_and_migrate_db() # Kiểm tra và update DB schema nếu thiếu
+    try:
+        check_and_migrate_db() # Kiểm tra và update DB schema nếu thiếu
+    except Exception as e:
+        print(f"[ERROR] Fatal error during startup database check: {e}")
     
     # Reset các task bị kẹt từ lần chạy trước (pending/processing trong DB nhưng không có trong RAM)
     # Nếu không reset, frontend sẽ poll vô tận sau khi server restart
