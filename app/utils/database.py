@@ -164,6 +164,16 @@ def init_db():
             updated_at DATETIME DEFAULT {ts_default}
         )
         ''')
+
+        # Bảng Login Sessions (Hybrid App Cloud-Sync)
+        cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS login_sessions (
+            session_id VARCHAR(255) PRIMARY KEY,
+            token {text_type},
+            status VARCHAR(50) DEFAULT 'pending',
+            created_at DATETIME DEFAULT {ts_default}
+        )
+        ''')
         
         # Thêm dữ liệu mẫu cho Packages (Chỉ thêm nếu bảng trống)
         cursor.execute("SELECT COUNT(*) as count FROM packages")
@@ -280,6 +290,26 @@ def check_and_migrate_db():
                 
                 print(f"[OK] Migration: Đã thêm cột '{col_name}' vào users")
                 if db_type != "mysql": conn.commit()
+
+        # Migration: Thêm bảng login_sessions nếu chưa có
+        if db_type == "mysql":
+            cursor.execute("SHOW TABLES LIKE 'login_sessions'")
+            exists = cursor.fetchone() is not None
+        else:
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='login_sessions'")
+            exists = cursor.fetchone() is not None
+        
+        if not exists:
+            cursor.execute(f'''
+            CREATE TABLE login_sessions (
+                session_id VARCHAR(255) PRIMARY KEY,
+                token {text_type},
+                status VARCHAR(50) DEFAULT 'pending',
+                created_at DATETIME DEFAULT {ts_default}
+            )
+            ''')
+            if db_type != "mysql": conn.commit()
+            print("[OK] Migration: Đã tạo bảng 'login_sessions'")
 
     except Exception as e:
         print(f"[WARN] Migration warning: {e}")

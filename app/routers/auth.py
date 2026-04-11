@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends, Body
-from app.models.banner_db import UserManager
+from fastapi import APIRouter, HTTPException, Depends, Body, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from app.models.banner_db import UserManager, LoginSessionManager
 from app.config import settings
 from app.security.jwt import create_access_token, get_current_user
 from app.security.password import get_password_hash, verify_password
@@ -8,6 +9,8 @@ from google.auth.transport import requests
 from pydantic import BaseModel, EmailStr
 from datetime import datetime, timedelta
 import logging
+import httpx
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +18,13 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 def get_user_manager():
     manager = UserManager()
+    try:
+        yield manager
+    finally:
+        manager.close()
+
+def get_login_session_manager():
+    manager = LoginSessionManager()
     try:
         yield manager
     finally:
@@ -246,3 +256,147 @@ async def reset_password(
         
     except JWTError:
         raise HTTPException(status_code=401, detail="Token không hợp lệ hoặc đã hết hạn")
+
+# ============================================================
+# HYBRID APP LOGIN (CLOUD-SYNC POLLING)
+# ============================================================
+
+@router.post("/login-session")
+async def create_login_session(
+    session_id: str = Body(..., embed=True),
+    ls_manager: LoginSessionManager = Depends(get_login_session_manager)
+):
+    """Khởi tạo phiên chờ đăng nhập cho Hybrid App."""
+    ls_manager.create_session(session_id)
+    return {"success": True, "session_id": session_id}
+
+@router.get("/login-session/{session_id}")
+async def check_login_session(
+    session_id: str,
+    ls_manager: LoginSessionManager = Depends(get_login_session_manager),
+    user_manager: UserManager = Depends(get_user_manager)
+):
+    """Frontend gọi endpoint này để poll trạng thái đăng nhập."""
+    session = ls_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    if session['status'] == 'completed' and session['token']:
+        # Khi đã lấy được token, ta có thể trả về thông tin user luôn
+        from jose import jwt
+        try:
+            payload = jwt.decode(session['token'], settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload.get("sub")
+            user = user_manager.get_by_id(user_id)
+            
+            # Xóa session sau khi lấy thành công (One-time use)
+            ls_manager.delete_session(session_id)
+            
+            return {
+                "status": "completed",
+                "access_token": session['token'],
+                "user": {
+                    "id": user['id'],
+                    "email": user['email'],
+                    "full_name": user['full_name'],
+                    "tokens": user['tokens'],
+                    "avatar": user['avatar_url'],
+                    "is_admin": user['is_admin'] == 1
+                }
+            }
+        except:
+            pass
+
+    return {"status": session['status']}
+
+@router.get("/google/login/flutter")
+async def google_login_flutter(session_id: str):
+    """Endpoint Redirect sang Google OAuth cho Flutter."""
+    # Build Google Auth URL
+    google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
+    redirect_uri = f"{settings.API_URL}/api/v1/auth/google/callback/flutter"
+    
+    params = {
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": session_id, # Truyền sessionId qua state
+        "access_type": "offline",
+        "prompt": "select_account"
+    }
+    
+    auth_url = f"{google_auth_url}?{'&'.join([f'{k}={v}' for k, v in params.items()])}"
+    return RedirectResponse(url=auth_url)
+
+@router.get("/google/callback/flutter")
+async def google_callback_flutter(
+    request: Request,
+    ls_manager: LoginSessionManager = Depends(get_login_session_manager),
+    user_manager: UserManager = Depends(get_user_manager)
+):
+    """Xử lý callback từ Google, cấp JWT và cập nhật DB."""
+    code = request.query_params.get("code")
+    session_id = request.query_params.get("state") # Lấy lại sessionId từ state
+    
+    if not code or not session_id:
+        return HTMLResponse(content="<h2>Lỗi xác thực: Thiếu thông tin.</h2>", status_code=400)
+    
+    try:
+        # 1. Exchange Code for ID Token
+        redirect_uri = f"{settings.API_URL}/api/v1/auth/google/callback/flutter"
+        async with httpx.AsyncClient() as client:
+            token_res = await client.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "code": code,
+                    "client_id": settings.GOOGLE_CLIENT_ID,
+                    "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                }
+            )
+            token_data = token_res.json()
+            id_token_str = token_data.get("id_token")
+            
+        if not id_token_str:
+            return HTMLResponse(content=f"<h2>Lỗi Google Token Exchange</h2><pre>{json.dumps(token_data)}</pre>")
+
+        # 2. Verify Google Token
+        idinfo = id_token.verify_oauth2_token(id_token_str, requests.Request(), settings.GOOGLE_CLIENT_ID)
+        google_id = idinfo['sub']
+        email = idinfo['email']
+        name = idinfo.get('name', 'User')
+        picture = idinfo.get('picture', '')
+
+        # 3. Get/Create User in DB
+        user = user_manager.get_by_google_id(google_id)
+        if not user:
+            user_id = user_manager.create(email=email, full_name=name, google_id=google_id, avatar_url=picture)
+            user = user_manager.get_by_id(user_id)
+        
+        # 4. Create internal JWT Token
+        access_token = create_access_token(data={"sub": str(user['id']), "email": user['email']})
+        
+        # 5. Update Login Session in DB
+        ls_manager.update_session(session_id, access_token)
+        
+        # 6. Return Success Page
+        return HTMLResponse(content="""
+            <html>
+                <body style="font-family: sans-serif; text-align: center; padding-top: 50px; background: #f8fafc;">
+                    <div style="max-width: 400px; margin: 0 auto; background: white; padding: 40px; border-radius: 24px; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+                        <h1 style="color: #10b981;">✅ Đăng nhập thành công</h1>
+                        <p style="color: #64748b;">Bạn đã đăng nhập thành công vào hệ thống.</p>
+                        <p style="font-weight: bold;">Hãy đóng tab này để quay lại ứng dụng.</p>
+                        <button onclick="window.close()" style="margin-top: 20px; padding: 12px 24px; background: #4f46e5; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">
+                            Đóng cửa sổ
+                        </button>
+                    </div>
+                </body>
+            </html>
+        """)
+
+    except Exception as e:
+        logger.error(f"Callback Error: {e}")
+        return HTMLResponse(content=f"<h2>Lỗi hệ thống</h2><p>{str(e)}</p>", status_code=500)

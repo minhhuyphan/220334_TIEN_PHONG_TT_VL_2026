@@ -322,5 +322,33 @@ class Banners(DBConnection):
         self.commit()
         return self.cursor.lastrowid
 
+class LoginSessionManager(DBConnection):
+    def create_session(self, session_id):
+        # Cleanup old sessions first (TTL logic: 10 mins)
+        if self.db_type == "mysql":
+            self.cursor.execute("DELETE FROM login_sessions WHERE created_at < DATE_SUB(NOW(), INTERVAL 10 MINUTE)")
+        else:
+            self.cursor.execute("DELETE FROM login_sessions WHERE created_at < datetime('now', '-10 minutes')")
+        
+        # Create new session
+        self.cursor.execute(f"INSERT INTO login_sessions (session_id, status) VALUES ({self.p}, 'pending')", (session_id,))
+        self.commit()
+        return session_id
+
+    def get_session(self, session_id):
+        self.cursor.execute(f"SELECT * FROM login_sessions WHERE session_id = {self.p}", (session_id,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+
+    def update_session(self, session_id, token, status='completed'):
+        self.cursor.execute(f"UPDATE login_sessions SET token = {self.p}, status = {self.p} WHERE session_id = {self.p}", (token, status, session_id))
+        self.commit()
+        return self.cursor.rowcount
+
+    def delete_session(self, session_id):
+        self.cursor.execute(f"DELETE FROM login_sessions WHERE session_id = {self.p}", (session_id,))
+        self.commit()
+        return self.cursor.rowcount
+
 # Legacy aliases
 Users = UserManager

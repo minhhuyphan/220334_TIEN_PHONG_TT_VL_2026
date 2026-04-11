@@ -79,6 +79,22 @@ export const apiService = {
     return response.json();
   },
 
+  async createLoginSession(sessionId: string): Promise<any> {
+    const response = await fetch(`${__API_URL__}/auth/login-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId })
+    });
+    if (!response.ok) throw new Error('Failed to create login session');
+    return response.json();
+  },
+
+  async checkLoginSession(sessionId: string): Promise<any> {
+    const response = await fetch(`${__API_URL__}/auth/login-session/${sessionId}`);
+    if (!response.ok) throw new Error('Failed to check login session');
+    return response.json();
+  },
+
   async getPackages(): Promise<Package[]> {
     const response = await fetch(`${__API_URL__}/payment/packages`);
     if (!response.ok) throw new Error('Failed to fetch packages');

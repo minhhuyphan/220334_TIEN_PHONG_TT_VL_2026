@@ -45,6 +45,46 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     }
   };
 
+  const startHybridGoogleLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
+      // 1. Khởi tạo phiên chờ trên Backend
+      await apiService.createLoginSession(sessionId);
+
+      // 2. Gửi lệnh cho Flutter mở Chrome Custom Tab
+      /* @ts-ignore */
+      if (window.FlutterBridge) {
+        /* @ts-ignore */
+        window.FlutterBridge.postMessage(`GOOGLE_LOGIN:${sessionId}`);
+      } else {
+        throw new Error("Không tìm thấy môi trường ứng dụng di động.");
+      }
+
+      // 3. Bắt đầu Polling
+      const pollInterval = setInterval(async () => {
+        try {
+          const data = await apiService.checkLoginSession(sessionId);
+          if (data.status === 'completed' && data.access_token) {
+            clearInterval(pollInterval);
+            onLoginSuccess(data.user, data.access_token);
+          }
+        } catch (err) {
+          console.error("Polling error:", err);
+        }
+      }, 2000);
+
+      // Timeout sau 5 phút
+      setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000);
+
+    } catch (err: any) {
+      setError(err.message || "Hybrid login failed");
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -143,7 +183,19 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </div>
 
             <div className="flex justify-center mb-8">
-              <div id="googleBtn" className="w-full flex justify-center"></div>
+              {/* @ts-ignore */}
+              {window.FlutterBridge ? (
+                <button
+                  onClick={startHybridGoogleLogin}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-3 py-4 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all text-slate-700 font-semibold shadow-sm"
+                >
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                  {isLoading ? "Đang chờ đăng nhập..." : "Tiếp tục với Google"}
+                </button>
+              ) : (
+                <div id="googleBtn" className="w-full flex justify-center"></div>
+              )}
             </div>
 
             {error && (
